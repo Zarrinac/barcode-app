@@ -1,0 +1,49 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MovementType {
+  IN
+  OUT
+}
+
+enum SerialStatus {
+  REGISTERED
+  EXITED
+}
+
+model ProductModel {
+  id           String         @id @default(cuid())
+  model        String
+  productCode  String         @unique
+  warrantyCode String         @default("0")
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  serials      SerialRecord[]
+}
+
+model SerialRecord {
+  id           String        @id @default(cuid())
+  date         DateTime      @default(now())
+  documentNo   String?
+  customerName String?
+  productCode  String
+  modelName    String?
+  trackingCode String?
+  serialNo     String        @unique
+  movement     MovementType  @default(IN)
+  status       SerialStatus  @default(REGISTERED)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  product      ProductModel? @relation(fields: [productCode], references: [productCode])
+
+  @@index([productCode])
+  @@index([serialNo])
+  @@index([createdAt])
+}
