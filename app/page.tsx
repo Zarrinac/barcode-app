@@ -22,6 +22,7 @@ import type { ReactNode, Ref } from 'react';
 
 type ViewId = 'serial-new' | 'serial-list' | 'product-new' | 'product-list' | 'locations';
 type MovementType = 'ورود' | 'خروج';
+type ScanMode = 'lookup' | 'inbound' | 'outbound';
 type SerialStatus = 'ثبت شده' | 'خروج شده';
 
 type ProductModel = {
@@ -111,6 +112,14 @@ type SerialRecordResponse = {
 
 type LocationResponse = {
   location: LocationSummary;
+};
+
+type ScanResponse = {
+  action: 'FOUND' | 'NOT_FOUND' | 'INBOUND_CREATED' | 'OUTBOUND_CREATED';
+  barcode: string;
+  matchedModel: ProductModel | null;
+  message: string;
+  serial: SerialRecord | null;
 };
 
 const persianDatePartsFormatter = new Intl.DateTimeFormat('en-US-u-ca-persian', {
@@ -313,10 +322,16 @@ const menuItems: Array<{ id: ViewId; label: string; icon: ReactNode }> = [
   { id: 'product-new', label: 'تعریف کالا', icon: <Inventory2Outlined /> },
   { id: 'product-list', label: 'لیست مدل کالا', icon: <TableRowsOutlined /> },
   { id: 'serial-list', label: 'لیست سریال', icon: <BadgeOutlined /> },
-  { id: 'serial-new', label: 'سریال جدید', icon: <QrCodeScanner /> },
+  { id: 'serial-new', label: 'اسکن بارکد', icon: <QrCodeScanner /> },
 ];
 
 const pageSizeOptions = [20, 50, 100];
+
+const scanModeOptions: Array<{ id: ScanMode; label: string }> = [
+  { id: 'inbound', label: 'ورود' },
+  { id: 'outbound', label: 'خروج' },
+  { id: 'lookup', label: 'استعلام' },
+];
 
 function readStorage<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') {
@@ -333,6 +348,22 @@ function readStorage<T>(key: string, fallback: T): T {
   } catch {
     return fallback;
   }
+}
+
+function readLoginState() {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  if (new URLSearchParams(window.location.search).get('loggedIn') === '1') {
+    return true;
+  }
+
+  if (window.document.cookie.split('; ').includes('barcode-app-login=true')) {
+    return true;
+  }
+
+  return readStorage('barcode-app-login', false);
 }
 
 async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
@@ -367,6 +398,11 @@ export default function Home() {
   const [modelPageSize, setModelPageSize] = useState(20);
   const [serialPage, setSerialPage] = useState(1);
   const [serialPageSize, setSerialPageSize] = useState(20);
+  const [scanMode, setScanMode] = useState<ScanMode>('inbound');
+  const [scanValue, setScanValue] = useState('');
+  const [scanResult, setScanResult] = useState<ScanResponse | null>(null);
+  const [isScanBusy, setIsScanBusy] = useState(false);
+  const scanInputRef = useRef<HTMLInputElement>(null);
   const modalSerialInputRef = useRef<HTMLInputElement>(null);
 
   const [loginForm, setLoginForm] = useState({ username: 'admin', password: 'admin' });
@@ -408,12 +444,19 @@ export default function Home() {
   );
 
   useEffect(() => {
-    const frame = window.requestAnimationFrame(() => {
-      setIsLoggedIn(readStorage('barcode-app-login', false));
-      setHasHydrated(true);
-    });
+    const loggedIn = readLoginState();
 
-    return () => window.cancelAnimationFrame(frame);
+    if (loggedIn) {
+      window.localStorage.setItem('barcode-app-login', JSON.stringify(true));
+      window.document.cookie = 'barcode-app-login=true; path=/; max-age=2592000; samesite=lax';
+    }
+
+    const timeout = window.setTimeout(() => {
+      setIsLoggedIn(loggedIn);
+      setHasHydrated(true);
+    }, 0);
+
+    return () => window.clearTimeout(timeout);
   }, []);
 
   useEffect(() => {
@@ -473,6 +516,9 @@ export default function Home() {
     }
 
     window.localStorage.setItem('barcode-app-login', JSON.stringify(isLoggedIn));
+    window.document.cookie = `barcode-app-login=${isLoggedIn ? 'true' : ''}; path=/; max-age=${
+      isLoggedIn ? 2592000 : 0
+    }; samesite=lax`;
   }, [hasHydrated, isLoggedIn]);
 
   const isSerialDialogOpen = serialDialog !== null;
@@ -482,6 +528,12 @@ export default function Home() {
       modalSerialInputRef.current?.focus();
     }
   }, [isSerialDialogOpen]);
+
+  useEffect(() => {
+    if (activeView === 'serial-new' && isLoggedIn && !isSerialDialogOpen) {
+      scanInputRef.current?.focus();
+    }
+  }, [activeView, isLoggedIn, isSerialDialogOpen]);
 
   const filteredModels = useMemo(() => {
     const query = modelSearch.trim().toLowerCase();
@@ -564,12 +616,55 @@ export default function Home() {
       return;
     }
 
-    if (id === 'serial-new') {
-      openSerialCreate();
+    setActiveView(id);
+  };
+
+  const login = () => {
+    window.localStorage.setItem('barcode-app-login', JSON.stringify(true));
+    window.document.cookie = 'barcode-app-login=true; path=/; max-age=2592000; samesite=lax';
+    setIsLoggedIn(true);
+  };
+
+  const logout = () => {
+    window.localStorage.removeItem('barcode-app-login');
+    window.document.cookie = 'barcode-app-login=; path=/; max-age=0; samesite=lax';
+    setIsLoggedIn(false);
+  };
+
+  const submitScan = async (event?: React.FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
+    const barcode = scanValue.trim();
+
+    if (!barcode || isScanBusy) {
       return;
     }
 
-    setActiveView(id);
+    setIsScanBusy(true);
+
+    try {
+      const data = await apiRequest<ScanResponse>('/api/scans', {
+        body: JSON.stringify({ barcode, mode: scanMode }),
+        method: 'POST',
+      });
+
+      setScanResult(data);
+      setScanValue('');
+      setStatusMessage(data.message);
+
+      if (
+        data.serial &&
+        (data.action === 'INBOUND_CREATED' || data.action === 'OUTBOUND_CREATED')
+      ) {
+        setSerials((current) => [data.serial as SerialRecord, ...current]);
+        setSerialPage(1);
+        void loadBootstrapData();
+      }
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : 'ثبت اسکن ناموفق بود.');
+    } finally {
+      setIsScanBusy(false);
+      window.requestAnimationFrame(() => scanInputRef.current?.focus());
+    }
   };
 
   const saveProduct = async (event: React.FormEvent<HTMLFormElement>) => {
@@ -818,10 +913,11 @@ export default function Home() {
           </div>
 
           <form
+            action="/api/login"
             className="login-form"
-            onSubmit={(event) => {
-              event.preventDefault();
-              setIsLoggedIn(true);
+            method="post"
+            onSubmit={() => {
+              login();
             }}
           >
             <label className="field with-icon">
@@ -847,7 +943,7 @@ export default function Home() {
                 autoComplete="current-password"
               />
             </label>
-            <button className="primary-button login-button" type="submit">
+            <button className="primary-button login-button" onClick={login} type="submit">
               ورود
             </button>
           </form>
@@ -888,10 +984,12 @@ export default function Home() {
             <DashboardOutlined />
             <span>کاربر جاری: admin</span>
           </div>
-          <button className="ghost-button" onClick={() => setIsLoggedIn(false)} type="button">
-            <Logout />
-            خروج
-          </button>
+          <form action="/api/logout" method="post">
+            <button className="ghost-button" onClick={logout} type="submit">
+              <Logout />
+              خروج
+            </button>
+          </form>
         </header>
 
         <section className="stats-grid" aria-label="خلاصه وضعیت انبار">
@@ -905,22 +1003,95 @@ export default function Home() {
 
         {activeView === 'serial-new' && (
           <ContentPanel
-            title="ایجاد سریال"
-            subtitle="ثبت سریال از طریق فرم سریع"
+            title="اسکن بارکد"
+            subtitle="ثبت سریع ورود، خروج و استعلام"
             action={
               <button className="secondary-button" onClick={() => setActiveView('serial-list')}>
                 مشاهده لیست
               </button>
             }
           >
-            <div className="empty-action">
-              <QrCodeScanner />
-              <strong>فرم ثبت سریال در پنجره جداگانه باز می‌شود.</strong>
-              <button className="primary-button" onClick={openSerialCreate} type="button">
-                <Add />
-                سریال جدید
-              </button>
-            </div>
+            <section className="scanner-panel">
+              <div className="scanner-mode-group" aria-label="نوع عملیات اسکن">
+                {scanModeOptions.map((option) => (
+                  <button
+                    className={scanMode === option.id ? 'scanner-mode active' : 'scanner-mode'}
+                    key={option.id}
+                    onClick={() => {
+                      setScanMode(option.id);
+                      scanInputRef.current?.focus();
+                    }}
+                    type="button"
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+
+              <form className="scanner-form" onSubmit={submitScan}>
+                <label className="scanner-input-wrap">
+                  <span>بارکد</span>
+                  <QrCodeScanner />
+                  <input
+                    ref={scanInputRef}
+                    value={scanValue}
+                    onChange={(event) => setScanValue(event.target.value)}
+                    autoCapitalize="characters"
+                    autoComplete="off"
+                    autoCorrect="off"
+                    inputMode="none"
+                    placeholder="اسکن..."
+                  />
+                </label>
+                <button className="primary-button" disabled={isScanBusy} type="submit">
+                  <QrCodeScanner />
+                  {isScanBusy ? 'در حال ثبت' : 'ثبت اسکن'}
+                </button>
+              </form>
+
+              {scanResult && (
+                <article
+                  className={`scan-result ${scanResult.action === 'NOT_FOUND' ? 'warn' : ''}`}
+                >
+                  <div>
+                    <span>آخرین اسکن</span>
+                    <strong>{scanResult.barcode}</strong>
+                  </div>
+                  <p>{scanResult.message}</p>
+                  {scanResult.serial && (
+                    <div className="scan-result-grid">
+                      <RecordField label="شماره سریال" value={scanResult.serial.serialNo} />
+                      <RecordField label="مدل کالا" value={scanResult.serial.model || '-'} />
+                      <RecordField
+                        label="شناسه کالا"
+                        value={scanResult.serial.productCode || '-'}
+                      />
+                      <RecordField label="نوع" value={scanResult.serial.movement} />
+                    </div>
+                  )}
+                  {!scanResult.serial && scanResult.matchedModel && (
+                    <div className="scan-result-grid">
+                      <RecordField label="مدل کالا" value={scanResult.matchedModel.model} />
+                      <RecordField label="شناسه کالا" value={scanResult.matchedModel.productCode} />
+                    </div>
+                  )}
+                </article>
+              )}
+
+              <div className="scanner-secondary-actions">
+                <button className="secondary-button" onClick={openSerialCreate} type="button">
+                  <Add />
+                  ثبت دستی
+                </button>
+                <button
+                  className="ghost-panel-button"
+                  onClick={() => setActiveView('serial-list')}
+                  type="button"
+                >
+                  لیست سریال‌ها
+                </button>
+              </div>
+            </section>
           </ContentPanel>
         )}
 
