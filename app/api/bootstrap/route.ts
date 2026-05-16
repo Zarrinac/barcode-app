@@ -6,11 +6,11 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   const [productModels, serialRecords, locations, users] = await Promise.all([
     prisma.productModel.findMany({
-      orderBy: { id: 'asc' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: 250,
     }),
     prisma.serialRecord.findMany({
-      orderBy: { id: 'asc' },
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
       take: 500,
     }),
     prisma.warehouseLocation.findMany({

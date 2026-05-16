@@ -115,11 +115,23 @@ type LocationResponse = {
 };
 
 type ScanResponse = {
-  action: 'FOUND' | 'NOT_FOUND' | 'INBOUND_CREATED' | 'OUTBOUND_CREATED';
+  action:
+    | 'FOUND'
+    | 'NOT_FOUND'
+    | 'PRODUCT_SELECTED'
+    | 'TRACKING_SELECTED'
+    | 'INBOUND_CREATED'
+    | 'OUTBOUND_CREATED';
   barcode: string;
   matchedModel: ProductModel | null;
   message: string;
   serial: SerialRecord | null;
+  trackingCode?: string | null;
+};
+
+type ScanContext = {
+  model: ProductModel | null;
+  trackingCode: string;
 };
 
 const persianDatePartsFormatter = new Intl.DateTimeFormat('en-US-u-ca-persian', {
@@ -400,6 +412,10 @@ export default function Home() {
   const [serialPageSize, setSerialPageSize] = useState(20);
   const [scanMode, setScanMode] = useState<ScanMode>('inbound');
   const [scanValue, setScanValue] = useState('');
+  const [scanContext, setScanContext] = useState<ScanContext>({
+    model: null,
+    trackingCode: '',
+  });
   const [scanResult, setScanResult] = useState<ScanResponse | null>(null);
   const [isScanBusy, setIsScanBusy] = useState(false);
   const scanInputRef = useRef<HTMLInputElement>(null);
@@ -633,7 +649,12 @@ export default function Home() {
 
   const submitScan = async (event?: React.FormEvent<HTMLFormElement>) => {
     event?.preventDefault();
-    const barcode = scanValue.trim();
+    const formBarcode =
+      event?.currentTarget instanceof HTMLFormElement
+        ? (new FormData(event.currentTarget).get('barcode')?.toString() ?? '')
+        : '';
+
+    const barcode = (formBarcode || scanValue).trim();
 
     if (!barcode || isScanBusy) {
       return;
@@ -643,7 +664,13 @@ export default function Home() {
 
     try {
       const data = await apiRequest<ScanResponse>('/api/scans', {
-        body: JSON.stringify({ barcode, mode: scanMode }),
+        body: JSON.stringify({
+          barcode,
+          mode: scanMode,
+          model: scanContext.model?.model ?? '',
+          productCode: scanContext.model?.productCode ?? '',
+          trackingCode: scanContext.trackingCode,
+        }),
         method: 'POST',
       });
 
@@ -651,12 +678,27 @@ export default function Home() {
       setScanValue('');
       setStatusMessage(data.message);
 
+      if (data.action === 'PRODUCT_SELECTED' && data.matchedModel) {
+        setScanContext((current) => ({
+          ...current,
+          model: data.matchedModel,
+        }));
+      }
+
+      if (data.action === 'TRACKING_SELECTED' && data.matchedModel) {
+        setScanContext({
+          model: data.matchedModel,
+          trackingCode: data.trackingCode ?? barcode,
+        });
+      }
+
       if (
         data.serial &&
         (data.action === 'INBOUND_CREATED' || data.action === 'OUTBOUND_CREATED')
       ) {
         setSerials((current) => [data.serial as SerialRecord, ...current]);
         setSerialPage(1);
+        setScanContext((current) => ({ ...current, trackingCode: '' }));
         void loadBootstrapData();
       }
     } catch (error) {
@@ -775,6 +817,12 @@ export default function Home() {
       void loadBootstrapData();
     } catch (error) {
       setStatusMessage(error instanceof Error ? error.message : 'ذخیره سریال ناموفق بود.');
+    }
+  };
+
+  const preventModalEnterSubmit = (event: React.KeyboardEvent<HTMLFormElement>) => {
+    if (event.key === 'Enter' && event.target instanceof HTMLInputElement) {
+      event.preventDefault();
     }
   };
 
@@ -1028,12 +1076,33 @@ export default function Home() {
                 ))}
               </div>
 
+              {(scanContext.model || scanContext.trackingCode) && (
+                <article className="scan-result context">
+                  <div>
+                    <span>آماده برای ثبت سریال</span>
+                    <strong>{scanContext.model?.model ?? 'مدل انتخاب نشده'}</strong>
+                  </div>
+                  <div className="scan-result-grid">
+                    <RecordField label="شناسه کالا" value={scanContext.model?.productCode || '-'} />
+                    <RecordField label="کد رهگیری" value={scanContext.trackingCode || '-'} />
+                  </div>
+                  <button
+                    className="secondary-button"
+                    onClick={() => setScanContext({ model: null, trackingCode: '' })}
+                    type="button"
+                  >
+                    پاک کردن
+                  </button>
+                </article>
+              )}
+
               <form className="scanner-form" onSubmit={submitScan}>
                 <label className="scanner-input-wrap">
                   <span>بارکد</span>
                   <QrCodeScanner />
                   <input
                     ref={scanInputRef}
+                    name="barcode"
                     value={scanValue}
                     onChange={(event) => setScanValue(event.target.value)}
                     autoCapitalize="characters"
@@ -1471,7 +1540,11 @@ export default function Home() {
           onClose={() => setSerialDialog(null)}
           wide
         >
-          <form className="modal-form modal-form-wide" onSubmit={saveSerial}>
+          <form
+            className="modal-form modal-form-wide"
+            onKeyDown={preventModalEnterSubmit}
+            onSubmit={saveSerial}
+          >
             <PersianDateField
               label="تاریخ"
               value={serialDialog.draft.date}
