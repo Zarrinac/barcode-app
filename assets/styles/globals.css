@@ -337,7 +337,7 @@ svg {
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
 }
 
@@ -766,7 +766,7 @@ svg {
 }
 
 .search-box {
-  min-width: 240px;
+  min-width: 500px;
   display: grid;
   gap: 7px;
   color: var(--muted);
@@ -784,6 +784,57 @@ svg {
 
 .search-box input {
   padding-right: 38px;
+}
+
+.serial-date-filters {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 250px 300px 300px 1fr 250px;
+  align-items: end;
+  column-gap: 18px;
+  row-gap: 24px;
+  margin: 18px 0 20px;
+  padding: 14px 16px;
+  border: 1px solid rgb(203 216 222 / 78%);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgb(14 165 154 / 7%), transparent 40%),
+    linear-gradient(180deg, #ffffff, #f8fbfa);
+  box-shadow: 0 12px 28px rgb(15 35 52 / 7%);
+}
+
+.serial-date-filters .field {
+  min-width: 0;
+}
+
+.serial-date-filters .secondary-button {
+  grid-column: 5;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 10px;
+  box-shadow: none;
+  white-space: nowrap;
+}
+
+.serial-date-caption {
+  grid-column: 1;
+  align-self: center;
+  margin-left: 12px;
+  color: var(--brand);
+  font-size: 15px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.serial-date-caption::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-left: 8px;
+  border-radius: 999px;
+  background: var(--teal);
+  box-shadow: 0 0 0 4px rgb(14 165 154 / 12%);
 }
 
 .table-options {
@@ -1188,6 +1239,11 @@ tbody tr:hover {
   font-weight: 800;
 }
 
+.date-trigger.empty {
+  color: var(--muted);
+  font-weight: 700;
+}
+
 .date-trigger svg {
   color: var(--teal);
 }
@@ -1430,9 +1486,17 @@ tbody tr:hover {
 
   .panel-heading,
   .table-toolbar,
+  .serial-date-filters,
   .pagination-row {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .serial-date-filters {
+    width: 100%;
+    grid-template-columns: 1fr;
+    margin-right: 0;
+    margin-left: 0;
   }
 
   .panel-heading {
@@ -2349,6 +2413,7 @@ tbody tr:hover {
   justify-content: space-between;
   gap: 10px;
   min-height: 46px;
+  margin-top: 16px;
   padding: 2px 4px;
   color: #2d2635;
   font-size: 16px;
