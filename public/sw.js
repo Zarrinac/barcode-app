@@ -1,5 +1,5 @@
-const CACHE_NAME = 'barcode-warehouse-v1';
-const APP_SHELL = ['/', '/manifest.webmanifest'];
+const CACHE_NAME = 'barcode-warehouse-v3';
+const APP_SHELL = ['/', '/scanner', '/manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(

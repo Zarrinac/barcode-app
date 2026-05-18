@@ -20,6 +20,8 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode, Ref } from 'react';
 
+import { downloadSerialExcelFile } from '@/lib/serial-excel';
+
 type ViewId = 'serial-new' | 'serial-list' | 'product-new' | 'product-list' | 'locations';
 type MovementType = 'ورود' | 'خروج';
 type ScanMode = 'lookup' | 'inbound' | 'outbound';
@@ -46,6 +48,9 @@ type SerialRecord = {
   serialNo: string;
   movement: MovementType;
   createdAt: string;
+  createdBy: string;
+  updatedAt: string;
+  updatedBy: string;
   status: SerialStatus;
 };
 
@@ -305,6 +310,9 @@ const seedSerials: SerialRecord[] = [
     serialNo: '2800003908970-001',
     movement: 'ورود',
     createdAt: '۱۴۰۲/۰۴/۱۴',
+    createdBy: 'admin',
+    updatedAt: '۱۴۰۲/۰۴/۱۴',
+    updatedBy: 'admin',
     status: 'ثبت شده',
   },
   {
@@ -318,6 +326,9 @@ const seedSerials: SerialRecord[] = [
     serialNo: '280000399052-002',
     movement: 'خروج',
     createdAt: '۱۴۰۲/۰۴/۱۴',
+    createdBy: 'admin',
+    updatedAt: '۱۴۰۲/۰۴/۱۴',
+    updatedBy: 'admin',
     status: 'خروج شده',
   },
 ];
@@ -330,11 +341,9 @@ const seedLocations: LocationSummary[] = [
 ];
 
 const menuItems: Array<{ id: ViewId; label: string; icon: ReactNode }> = [
-  { id: 'locations', label: 'لیست محل کالا', icon: <ArchiveOutlined /> },
+  { id: 'serial-list', label: 'لیست سریال', icon: <BadgeOutlined /> },
   { id: 'product-new', label: 'تعریف کالا', icon: <Inventory2Outlined /> },
   { id: 'product-list', label: 'لیست مدل کالا', icon: <TableRowsOutlined /> },
-  { id: 'serial-list', label: 'لیست سریال', icon: <BadgeOutlined /> },
-  { id: 'serial-new', label: 'اسکن بارکد', icon: <QrCodeScanner /> },
 ];
 
 const pageSizeOptions = [20, 50, 100];
@@ -398,7 +407,7 @@ async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
 export default function Home() {
   const [hasHydrated, setHasHydrated] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [activeView, setActiveView] = useState<ViewId>('locations');
+  const [activeView, setActiveView] = useState<ViewId>('serial-list');
   const [models, setModels] = useState<ProductModel[]>(seedModels);
   const [serials, setSerials] = useState<SerialRecord[]>(seedSerials);
   const [locations, setLocations] = useState<LocationSummary[]>(seedLocations);
@@ -571,17 +580,7 @@ export default function Home() {
     }
 
     return serials.filter((item) =>
-      [
-        item.date,
-        item.documentNo,
-        item.customerName,
-        item.productCode,
-        item.model,
-        item.trackingCode,
-        item.serialNo,
-        item.movement,
-        item.status,
-      ].some((value) => value.toLowerCase().includes(query)),
+      [item.documentNo, item.customerName].some((value) => value.toLowerCase().includes(query)),
     );
   }, [serialSearch, serials]);
 
@@ -910,26 +909,30 @@ export default function Home() {
   };
 
   const exportCsv = (type: 'models' | 'serials') => {
-    const rows =
-      type === 'models'
-        ? filteredModels.map((item, index) => ({
-            '#': index + 1,
-            model: item.model,
-            productCode: item.productCode,
-            warrantyCode: item.warrantyCode,
-            createdAt: item.createdAt,
-            status: item.status,
-          }))
-        : filteredSerials.map((item, index) => ({
-            '#': index + 1,
-            serialNo: item.serialNo,
-            model: item.model,
-            productCode: item.productCode,
-            movement: item.movement,
-            documentNo: item.documentNo,
-            date: item.date,
-            status: item.status,
-          }));
+    if (type === 'serials') {
+      downloadSerialExcelFile(
+        filteredSerials.map((item) => ({
+          date: item.date,
+          documentNo: item.documentNo,
+          customerName: item.customerName,
+          productCode: item.productCode,
+          model: item.model,
+          trackingCode: item.trackingCode,
+          serialNo: item.serialNo,
+        })),
+        `serials-${Date.now()}`,
+      );
+      return;
+    }
+
+    const rows = filteredModels.map((item, index) => ({
+      '#': index + 1,
+      model: item.model,
+      productCode: item.productCode,
+      warrantyCode: item.warrantyCode,
+      createdAt: item.createdAt,
+      status: item.status,
+    }));
 
     const csv = [
       Object.keys(rows[0] ?? { empty: '' }).join(','),
@@ -1176,11 +1179,13 @@ export default function Home() {
             }
           >
             <Toolbar
+              exportLabel="فایل اکسل"
               onExport={() => exportCsv('serials')}
               onSearch={(value) => {
                 setSerialSearch(value);
                 setSerialPage(1);
               }}
+              placeholder="نام مشتری یا شماره سند..."
               search={serialSearch}
             />
             <div className="table-options">
@@ -1192,18 +1197,22 @@ export default function Home() {
                 pageSize={serialPageSize}
               />
             </div>
-            <div className="table-wrap">
+            <div className="table-wrap serial-table-wrap">
               <table>
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>شماره سریال</th>
-                    <th>مدل کالا</th>
-                    <th>شناسه کالا</th>
-                    <th>نوع</th>
+                    <th>تاریخ</th>
                     <th>شماره سند</th>
                     <th>نام مشتری</th>
-                    <th>تاریخ</th>
+                    <th>شناسه کالا</th>
+                    <th>مدل کالا</th>
+                    <th>کد رهگیری</th>
+                    <th>شماره سریال</th>
+                    <th>تاریخ ایجاد</th>
+                    <th>ایجاد کننده</th>
+                    <th>تاریخ ویرایش</th>
+                    <th>ویرایش کننده</th>
                     <th>وضعیت</th>
                     <th>عملیات</th>
                   </tr>
@@ -1212,13 +1221,17 @@ export default function Home() {
                   {paginatedSerials.map((item, index) => (
                     <tr key={item.id}>
                       <td>{serialPageStart + index + 1}</td>
-                      <td>{item.serialNo}</td>
-                      <td>{item.model || '-'}</td>
-                      <td>{item.productCode || '-'}</td>
-                      <td>{item.movement}</td>
+                      <td>{item.date}</td>
                       <td>{item.documentNo || '-'}</td>
                       <td>{item.customerName}</td>
-                      <td>{item.date}</td>
+                      <td>{item.productCode || '-'}</td>
+                      <td>{item.model || '-'}</td>
+                      <td>{item.trackingCode || '-'}</td>
+                      <td>{item.serialNo}</td>
+                      <td>{item.createdAt || '-'}</td>
+                      <td>{item.createdBy || '-'}</td>
+                      <td>{item.updatedAt || '-'}</td>
+                      <td>{item.updatedBy || '-'}</td>
                       <td>
                         <StatusPill tone={item.status === 'ثبت شده' ? 'green' : 'orange'}>
                           {item.status}
@@ -1258,12 +1271,16 @@ export default function Home() {
                       <span>#{(serialPageStart + index + 1).toLocaleString('fa-IR')}</span>
                     </div>
                     <div className="record-card-grid">
-                      <RecordField label="مدل کالا" value={item.model || '-'} />
-                      <RecordField label="شناسه کالا" value={item.productCode || '-'} />
-                      <RecordField label="نوع" value={item.movement} />
+                      <RecordField label="تاریخ" value={item.date} />
                       <RecordField label="شماره سند" value={item.documentNo || '-'} />
                       <RecordField label="نام مشتری" value={item.customerName || '-'} />
-                      <RecordField label="تاریخ" value={item.date} />
+                      <RecordField label="شناسه کالا" value={item.productCode || '-'} />
+                      <RecordField label="مدل کالا" value={item.model || '-'} />
+                      <RecordField label="کد رهگیری" value={item.trackingCode || '-'} />
+                      <RecordField label="تاریخ ایجاد" value={item.createdAt || '-'} />
+                      <RecordField label="ایجاد کننده" value={item.createdBy || '-'} />
+                      <RecordField label="تاریخ ویرایش" value={item.updatedAt || '-'} />
+                      <RecordField label="ویرایش کننده" value={item.updatedBy || '-'} />
                     </div>
                     <div className="record-card-footer">
                       <StatusPill tone={item.status === 'ثبت شده' ? 'green' : 'orange'}>
@@ -1926,10 +1943,14 @@ function Toolbar({
   search,
   onSearch,
   onExport,
+  exportLabel = 'فایل CSV',
+  placeholder = 'جستجو...',
 }: {
   search: string;
   onSearch: (value: string) => void;
   onExport: () => void;
+  exportLabel?: string;
+  placeholder?: string;
 }) {
   return (
     <div className="table-toolbar">
@@ -1938,13 +1959,9 @@ function Toolbar({
           <Upload />
           کپی
         </button>
-        <button className="success-button" type="button">
-          <Download />
-          فایل اکسل
-        </button>
         <button className="success-button" onClick={onExport} type="button">
           <Download />
-          فایل CSV
+          {exportLabel}
         </button>
       </div>
       <label className="search-box">
@@ -1952,7 +1969,7 @@ function Toolbar({
         <input
           value={search}
           onChange={(event) => onSearch(event.target.value)}
-          placeholder="جستجو..."
+          placeholder={placeholder}
         />
       </label>
     </div>

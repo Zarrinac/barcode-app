@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: 'Barcode Warehouse',
     short_name: 'Barcode',
     description: 'Warehouse barcode reader and inventory tracker',
-    start_url: '/',
+    start_url: '/scanner',
     scope: '/',
     display: 'standalone',
     orientation: 'portrait',
