@@ -17,7 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { downloadSerialExcelFile } from '@/lib/serial-excel';
 
 type ScannerStep = 'login' | 'document' | 'collect';
-type AcPart = 'motor' | 'panel';
+type AcPart = 'motor' | 'panel' | null;
 
 type ProductModel = {
   id: string;
@@ -70,6 +70,22 @@ function normalizeScan(value: string) {
   return value.replace(/[\r\n\t]/g, '').trim();
 }
 
+function normalizeNumberInput(value: string) {
+  const normalizedDigits = normalizeScan(value).replace(/[۰-۹٠-٩]/g, (digit) => {
+    const persianDigits = '۰۱۲۳۴۵۶۷۸۹';
+    const arabicDigits = '٠١٢٣٤٥٦٧٨٩';
+    const persianIndex = persianDigits.indexOf(digit);
+
+    if (persianIndex >= 0) {
+      return String(persianIndex);
+    }
+
+    return String(arabicDigits.indexOf(digit));
+  });
+
+  return normalizedDigits.replace(/\D/g, '');
+}
+
 async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, {
     ...init,
@@ -96,7 +112,7 @@ export default function ScannerPage() {
   const [productCode, setProductCode] = useState('');
   const [trackingCode, setTrackingCode] = useState('');
   const [serialNo, setSerialNo] = useState('');
-  const [acPart, setAcPart] = useState<AcPart>('motor');
+  const [acPart, setAcPart] = useState<AcPart>(null);
   const [rows, setRows] = useState<ScanRow[]>([]);
   const [models, setModels] = useState<ProductModel[]>([]);
   const [statusMessage, setStatusMessage] = useState('عدم اتصال به اینترنت');
@@ -163,8 +179,8 @@ export default function ScannerPage() {
   }, [acPart, productCode, step]);
 
   const addRow = useCallback(() => {
-    const cleanProductCode = normalizeScan(productCode);
-    const cleanTrackingCode = acPart === 'panel' ? 'panel' : normalizeScan(trackingCode);
+    const cleanProductCode = normalizeNumberInput(productCode);
+    const cleanTrackingCode = acPart === 'panel' ? 'panel' : normalizeNumberInput(trackingCode);
     const cleanSerialNo = normalizeScan(serialNo);
 
     if (!cleanProductCode || !cleanTrackingCode || !cleanSerialNo) {
@@ -261,10 +277,12 @@ export default function ScannerPage() {
     window.requestAnimationFrame(() => productInputRef.current?.focus());
   };
 
-  const selectAcPart = (part: AcPart) => {
-    setAcPart(part);
+  const selectAcPart = (part: Exclude<AcPart, null>) => {
+    const nextPart = acPart === part ? null : part;
 
-    if (part === 'panel') {
+    setAcPart(nextPart);
+
+    if (nextPart === 'panel') {
       setTrackingCode('panel');
       window.requestAnimationFrame(() => serialInputRef.current?.focus());
       return;
@@ -412,7 +430,9 @@ export default function ScannerPage() {
           <input
             ref={documentInputRef}
             value={documentNo}
-            onChange={(event) => setDocumentNo(event.target.value)}
+            onChange={(event) => setDocumentNo(normalizeNumberInput(event.target.value))}
+            inputMode="numeric"
+            pattern="[0-9]*"
             placeholder="شماره سند"
           />
           <input
@@ -469,12 +489,14 @@ export default function ScannerPage() {
             <input
               ref={productInputRef}
               value={productCode}
-              onChange={(event) => setProductCode(normalizeScan(event.target.value))}
+              onChange={(event) => setProductCode(normalizeNumberInput(event.target.value))}
               onClick={clearProductForNewModel}
               onKeyDown={(event) => handleScanEnter(event, trackingInputRef)}
               autoCapitalize="characters"
               autoComplete="off"
               autoCorrect="off"
+              inputMode="numeric"
+              pattern="[0-9]*"
             />
           </div>
         </label>
@@ -488,12 +510,14 @@ export default function ScannerPage() {
               onChange={(event) =>
                 acPart === 'panel'
                   ? setTrackingCode('panel')
-                  : setTrackingCode(normalizeScan(event.target.value))
+                  : setTrackingCode(normalizeNumberInput(event.target.value))
               }
               onKeyDown={(event) => handleScanEnter(event, serialInputRef)}
               autoCapitalize="characters"
               autoComplete="off"
               autoCorrect="off"
+              inputMode="numeric"
+              pattern="[0-9]*"
               readOnly={acPart === 'panel'}
             />
           </div>
@@ -547,21 +571,19 @@ export default function ScannerPage() {
 
       <section className="scanner-ac-part-row">
         <strong>تعداد: {rows.length.toLocaleString('fa-IR')}</strong>
-        <div aria-label="نوع قطعه کولر" role="radiogroup">
+        <div aria-label="نوع قطعه کولر">
           <button
-            aria-checked={acPart === 'panel'}
+            aria-pressed={acPart === 'panel'}
             className={acPart === 'panel' ? 'active' : ''}
             onClick={() => selectAcPart('panel')}
-            role="radio"
             type="button"
           >
             پنل
           </button>
           <button
-            aria-checked={acPart === 'motor'}
+            aria-pressed={acPart === 'motor'}
             className={acPart === 'motor' ? 'active' : ''}
             onClick={() => selectAcPart('motor')}
-            role="radio"
             type="button"
           >
             موتور

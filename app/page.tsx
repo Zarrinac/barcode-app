@@ -246,6 +246,16 @@ function getPersianWeekIndex(date: Date) {
 
 const today = formatPersianDate(new Date());
 
+function persianDateKey(value: string) {
+  const parts = parsePersianDate(value);
+
+  if (!parts) {
+    return null;
+  }
+
+  return parts.year * 10000 + parts.month * 100 + parts.day;
+}
+
 const emptyProductDraft: ProductDraft = {
   model: '',
   productCode: '',
@@ -415,6 +425,8 @@ export default function Home() {
   const [statusMessage, setStatusMessage] = useState('');
   const [modelSearch, setModelSearch] = useState('');
   const [serialSearch, setSerialSearch] = useState('');
+  const [serialDateFrom, setSerialDateFrom] = useState('');
+  const [serialDateTo, setSerialDateTo] = useState('');
   const [modelPage, setModelPage] = useState(1);
   const [modelPageSize, setModelPageSize] = useState(20);
   const [serialPage, setSerialPage] = useState(1);
@@ -575,14 +587,20 @@ export default function Home() {
 
   const filteredSerials = useMemo(() => {
     const query = serialSearch.trim().toLowerCase();
-    if (!query) {
-      return serials;
-    }
+    const fromKey = persianDateKey(serialDateFrom);
+    const toKey = persianDateKey(serialDateTo);
 
-    return serials.filter((item) =>
-      [item.documentNo, item.customerName].some((value) => value.toLowerCase().includes(query)),
-    );
-  }, [serialSearch, serials]);
+    return serials.filter((item) => {
+      const matchesQuery =
+        !query ||
+        [item.documentNo, item.customerName].some((value) => value.toLowerCase().includes(query));
+      const itemDateKey = persianDateKey(item.date);
+      const matchesDateFrom = !fromKey || (itemDateKey !== null && itemDateKey >= fromKey);
+      const matchesDateTo = !toKey || (itemDateKey !== null && itemDateKey <= toKey);
+
+      return matchesQuery && matchesDateFrom && matchesDateTo;
+    });
+  }, [serialDateFrom, serialDateTo, serialSearch, serials]);
 
   const modelTotalPages = Math.max(1, Math.ceil(filteredModels.length / modelPageSize));
   const serialTotalPages = Math.max(1, Math.ceil(filteredSerials.length / serialPageSize));
@@ -602,14 +620,9 @@ export default function Home() {
   );
 
   const stats = useMemo(() => {
-    const inbound = serials.filter((item) => item.movement === 'ورود').length;
-    const outbound = serials.filter((item) => item.movement === 'خروج').length;
-
     return {
       models: models.length,
       serials: serials.length,
-      inbound,
-      outbound,
     };
   }, [models.length, serials]);
 
@@ -1044,10 +1057,8 @@ export default function Home() {
         </header>
 
         <section className="stats-grid" aria-label="خلاصه وضعیت انبار">
-          <StatCard label="مدل کالا" value={stats.models} tone="blue" />
           <StatCard label="کل سریال" value={stats.serials} tone="green" />
-          <StatCard label="ورودی" value={stats.inbound} tone="emerald" />
-          <StatCard label="خروجی" value={stats.outbound} tone="rose" />
+          <StatCard label="مدل کالا" value={stats.models} tone="blue" />
         </section>
 
         {statusMessage && <p className="status-message">{statusMessage}</p>}
@@ -1188,6 +1199,38 @@ export default function Home() {
               placeholder="نام مشتری یا شماره سند..."
               search={serialSearch}
             />
+            <div className="serial-date-filters">
+              <span className="serial-date-caption">بازه تاریخ</span>
+              <PersianDateField
+                label="از"
+                onChange={(value) => {
+                  setSerialDateFrom(value);
+                  setSerialPage(1);
+                }}
+                placeholder="انتخاب تاریخ"
+                value={serialDateFrom}
+              />
+              <PersianDateField
+                label="تا"
+                onChange={(value) => {
+                  setSerialDateTo(value);
+                  setSerialPage(1);
+                }}
+                placeholder="انتخاب تاریخ"
+                value={serialDateTo}
+              />
+              <button
+                className="secondary-button"
+                onClick={() => {
+                  setSerialDateFrom('');
+                  setSerialDateTo('');
+                  setSerialPage(1);
+                }}
+                type="button"
+              >
+                پاکسازی تاریخ
+              </button>
+            </div>
             <div className="table-options">
               <PageSizeControl
                 onPageSizeChange={(value) => {
@@ -1636,28 +1679,6 @@ export default function Home() {
               placeholder="اسکن بارکد..."
               wide
             />
-            <label className="field">
-              <span>نوع عملیات</span>
-              <select
-                value={serialDialog.draft.movement}
-                onChange={(event) =>
-                  setSerialDialog((current) =>
-                    current
-                      ? {
-                          ...current,
-                          draft: {
-                            ...current.draft,
-                            movement: event.target.value as MovementType,
-                          },
-                        }
-                      : current,
-                  )
-                }
-              >
-                <option>ورود</option>
-                <option>خروج</option>
-              </select>
-            </label>
             <ModalActions
               confirmLabel={serialDialog.mode === 'create' ? 'ثبت سریال' : 'ذخیره تغییرات'}
               onCancel={() => setSerialDialog(null)}
@@ -1780,10 +1801,12 @@ function PersianDateField({
   label,
   value,
   onChange,
+  placeholder,
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  placeholder?: string;
 }) {
   const selectedDate = parsePersianDate(value) ?? getPersianDateParts(new Date());
   const [isOpen, setIsOpen] = useState(false);
@@ -1812,12 +1835,12 @@ function PersianDateField({
     <label className="field date-field">
       <span>{label}</span>
       <button
-        className={isOpen ? 'date-trigger active' : 'date-trigger'}
+        className={`${isOpen ? 'date-trigger active' : 'date-trigger'}${value ? '' : ' empty'}`}
         onClick={() => setIsOpen((current) => !current)}
         type="button"
       >
         <CalendarMonthOutlined />
-        <span>{value || today}</span>
+        <span>{value || placeholder || today}</span>
       </button>
       {isOpen && (
         <div className="persian-calendar">
