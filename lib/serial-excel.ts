@@ -1,3 +1,6 @@
+import { Capacitor } from '@capacitor/core';
+import { Directory, Filesystem } from '@capacitor/filesystem';
+
 export type SerialExcelRow = {
   date: string;
   documentNo: string;
@@ -7,6 +10,14 @@ export type SerialExcelRow = {
   trackingCode: string;
   serialNo: string;
 };
+
+export type SerialExcelSaveResult = {
+  filename: string;
+  native: boolean;
+  path: string;
+};
+
+const serialExcelFolderName = 'barcode-files';
 
 function escapeXml(value: string | number) {
   return String(value)
@@ -121,7 +132,26 @@ function createCell(ref: string, value: string | number, style: number, numeric 
   return `<c r="${ref}" s="${style}" t="inlineStr"><is><t>${escapeXml(value)}</t></is></c>`;
 }
 
-export function downloadSerialExcelFile(rows: SerialExcelRow[], filename: string) {
+function sanitizeFilename(filename: string) {
+  const cleanFilename = filename.trim().replace(/[<>:"/\\|?*\u0000-\u001f]/g, '-');
+
+  return cleanFilename || 'serial-records';
+}
+
+function bytesToBase64(bytes: Uint8Array) {
+  let binary = '';
+  const chunkSize = 0x8000;
+
+  for (let offset = 0; offset < bytes.length; offset += chunkSize) {
+    const chunk = bytes.subarray(offset, offset + chunkSize);
+
+    binary += String.fromCharCode(...chunk);
+  }
+
+  return window.btoa(binary);
+}
+
+function createSerialExcelBytes(rows: SerialExcelRow[]) {
   const columns = [
     'ردیف',
     'تاریخ',
@@ -230,7 +260,7 @@ export function downloadSerialExcelFile(rows: SerialExcelRow[], filename: string
   <Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
   <Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>
 </Types>`;
-  const workbookBytes = createZip([
+  return createZip([
     { name: '[Content_Types].xml', content: contentTypes },
     { name: '_rels/.rels', content: rootRels },
     { name: 'xl/workbook.xml', content: workbook },
@@ -238,16 +268,81 @@ export function downloadSerialExcelFile(rows: SerialExcelRow[], filename: string
     { name: 'xl/worksheets/sheet1.xml', content: worksheet },
     { name: 'xl/styles.xml', content: styles },
   ]);
-  const blob = new Blob([workbookBytes], {
+}
+
+function downloadSerialExcelBytes(workbookBytes: Uint8Array, filename: string) {
+  const arrayBuffer = new ArrayBuffer(workbookBytes.byteLength);
+
+  new Uint8Array(arrayBuffer).set(workbookBytes);
+
+  const blob = new Blob([arrayBuffer], {
     type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   });
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
 
   link.href = url;
-  link.download = `${filename || 'serial-records'}.xlsx`;
+  link.download = filename;
   document.body.appendChild(link);
   link.click();
   link.remove();
   URL.revokeObjectURL(url);
+}
+
+export async function ensureSerialExcelFolder() {
+  if (!Capacitor.isNativePlatform()) {
+    return;
+  }
+
+  try {
+    await Filesystem.stat({
+      directory: Directory.Documents,
+      path: serialExcelFolderName,
+    });
+  } catch {
+    await Filesystem.mkdir({
+      directory: Directory.Documents,
+      path: serialExcelFolderName,
+      recursive: true,
+    });
+  }
+}
+
+export function downloadSerialExcelFile(rows: SerialExcelRow[], filename: string) {
+  const safeFilename = `${sanitizeFilename(filename)}.xlsx`;
+
+  downloadSerialExcelBytes(createSerialExcelBytes(rows), safeFilename);
+}
+
+export async function saveSerialExcelFile(
+  rows: SerialExcelRow[],
+  filename: string,
+): Promise<SerialExcelSaveResult> {
+  const safeFilename = `${sanitizeFilename(filename)}.xlsx`;
+  const workbookBytes = createSerialExcelBytes(rows);
+
+  if (Capacitor.isNativePlatform()) {
+    const path = `${serialExcelFolderName}/${safeFilename}`;
+
+    await Filesystem.writeFile({
+      data: bytesToBase64(workbookBytes),
+      directory: Directory.Documents,
+      path,
+      recursive: true,
+    });
+
+    return {
+      filename: safeFilename,
+      native: true,
+      path: `Documents/${path}`,
+    };
+  }
+
+  downloadSerialExcelBytes(workbookBytes, safeFilename);
+
+  return {
+    filename: safeFilename,
+    native: false,
+    path: safeFilename,
+  };
 }
