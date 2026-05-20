@@ -1,7 +1,14 @@
 import { config } from 'dotenv';
+import { existsSync } from 'node:fs';
 
-config({ path: '.env.local' });
+const hasProductionEnv = existsSync('.env.production');
+
+config({ path: '.env.production' });
 config();
+
+if (!hasProductionEnv && process.env.NODE_ENV !== 'production') {
+  config({ path: '.env.local', override: true });
+}
 
 import { UserRole } from '@prisma/client';
 
