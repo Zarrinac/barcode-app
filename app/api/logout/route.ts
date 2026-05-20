@@ -1,15 +1,19 @@
-function redirectWithLogout(request: Request) {
-  const isHttps = new URL(request.url).protocol === 'https:';
+import { createCookieHeader, legacyLoginCookieName, sessionCookieName } from '@/lib/auth';
 
-  return new Response(null, {
-    headers: {
-      Location: '/',
-      'Set-Cookie': `barcode-app-login=; Path=/; Max-Age=0; SameSite=Lax${
-        isHttps ? '; Secure' : ''
-      }`,
-    },
-    status: 303,
-  });
+function redirectWithLogout(request: Request) {
+  const headers = new Headers();
+
+  headers.set('Location', '/');
+  headers.append(
+    'Set-Cookie',
+    createCookieHeader(request, sessionCookieName, '', { httpOnly: true, maxAge: 0 }),
+  );
+  headers.append(
+    'Set-Cookie',
+    createCookieHeader(request, legacyLoginCookieName, '', { maxAge: 0 }),
+  );
+
+  return new Response(null, { headers, status: 303 });
 }
 
 export function GET(request: Request) {

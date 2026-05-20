@@ -14,7 +14,7 @@ import {
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
-import { downloadSerialExcelFile } from '@/lib/serial-excel';
+import { ensureSerialExcelFolder, saveSerialExcelFile } from '@/lib/serial-excel';
 
 type ScannerStep = 'login' | 'document' | 'collect';
 type AcPart = 'motor' | 'panel' | null;
@@ -48,6 +48,25 @@ type ScannerToast = {
 
 type ProductModelsResponse = {
   models: ProductModel[];
+};
+
+type AuthUser = {
+  role: string;
+  username: string;
+};
+
+type SessionResponse =
+  | {
+      authenticated: false;
+    }
+  | {
+      authenticated: true;
+      user: AuthUser;
+    };
+
+type LoginResponse = {
+  ok: true;
+  user: AuthUser;
 };
 
 const scannerStorageKey = 'barcode-app-scanner-session';
@@ -115,8 +134,9 @@ export default function ScannerPage() {
   const [acPart, setAcPart] = useState<AcPart>(null);
   const [rows, setRows] = useState<ScanRow[]>([]);
   const [models, setModels] = useState<ProductModel[]>([]);
-  const [statusMessage, setStatusMessage] = useState('عدم اتصال به اینترنت');
+  const [statusMessage, setStatusMessage] = useState('نام کاربری و رمز عبور را وارد کنید.');
   const [toast, setToast] = useState<ScannerToast | null>(null);
+  const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [isCompleting, setIsCompleting] = useState(false);
   const documentInputRef = useRef<HTMLInputElement>(null);
@@ -140,6 +160,67 @@ export default function ScannerPage() {
       JSON.stringify({ customerName, date, documentNo, productCode, rows, step }),
     );
   }, [customerName, date, documentNo, productCode, rows, step]);
+
+  useEffect(() => {
+    void ensureSerialExcelFolder();
+  }, []);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function loadSession() {
+      const shouldForceLogin =
+        typeof window !== 'undefined' &&
+        new URLSearchParams(window.location.search).get('freshLogin') === '1';
+
+      if (shouldForceLogin) {
+        await fetch('/api/logout', { method: 'POST' }).catch(() => undefined);
+        window.localStorage.removeItem('barcode-app-login');
+        window.localStorage.removeItem(scannerStorageKey);
+        window.history.replaceState(null, '', '/scanner');
+
+        if (!isCancelled) {
+          setRows([]);
+          setProductCode('');
+          setTrackingCode('');
+          setSerialNo('');
+          setDocumentNo('');
+          setCustomerName('');
+          setStep('login');
+          setStatusMessage('نام کاربری و رمز عبور را وارد کنید.');
+        }
+
+        return;
+      }
+
+      try {
+        const session = await apiRequest<SessionResponse>('/api/session');
+
+        if (isCancelled) {
+          return;
+        }
+
+        if (!session.authenticated) {
+          setStatusMessage('نام کاربری و رمز عبور را وارد کنید.');
+          return;
+        }
+
+        setDate(formatPersianDate(new Date()));
+        setStep('document');
+        setStatusMessage('آماده ثبت سند');
+      } catch {
+        if (!isCancelled) {
+          setStatusMessage('نام کاربری و رمز عبور را وارد کنید.');
+        }
+      }
+    }
+
+    void loadSession();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (step !== 'collect') {
@@ -219,7 +300,7 @@ export default function ScannerPage() {
     trackingCode,
   ]);
 
-  const login = (
+  const login = async (
     event?: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>,
   ) => {
     event?.preventDefault();
@@ -228,11 +309,23 @@ export default function ScannerPage() {
       return;
     }
 
-    window.localStorage.setItem('barcode-app-login', JSON.stringify(true));
-    window.document.cookie = 'barcode-app-login=true; path=/; max-age=2592000; samesite=lax';
-    setDate(formatPersianDate(new Date()));
-    setStep('document');
-    setStatusMessage('آماده ثبت سند');
+    setIsLoggingIn(true);
+
+    try {
+      await apiRequest<LoginResponse>('/api/login', {
+        body: JSON.stringify(loginForm),
+        method: 'POST',
+      });
+      window.localStorage.setItem('barcode-app-login', JSON.stringify(true));
+      setDate(formatPersianDate(new Date()));
+      setStep('document');
+      setStatusMessage('آماده ثبت سند');
+    } catch (error) {
+      window.localStorage.removeItem('barcode-app-login');
+      setStatusMessage(error instanceof Error ? error.message : 'ورود ناموفق بود.');
+    } finally {
+      setIsLoggingIn(false);
+    }
   };
 
   const startCollection = (
@@ -348,14 +441,22 @@ export default function ScannerPage() {
     }
   };
 
-  const saveRows = () => {
+  const saveRows = async () => {
     if (rows.length === 0) {
       return;
     }
 
     try {
-      downloadSerialExcelFile([...rows].reverse(), documentNo || 'scanner-records');
-      showToast(`${rows.length.toLocaleString('fa-IR')} ردیف در فایل اکسل ذخیره شد.`, 'success');
+      const result = await saveSerialExcelFile(
+        [...rows].reverse(),
+        documentNo || 'scanner-records',
+      );
+      const folderMessage = result.native ? ` در ${result.path}` : '';
+
+      showToast(
+        `${rows.length.toLocaleString('fa-IR')} ردیف در فایل اکسل ذخیره شد${folderMessage}.`,
+        'success',
+      );
     } catch {
       showToast('ذخیره فایل اکسل ناموفق بود.', 'error');
     }
@@ -386,6 +487,7 @@ export default function ScannerPage() {
           <label>
             <Person />
             <input
+              name="username"
               value={loginForm.username}
               onChange={(event) =>
                 setLoginForm((current) => ({ ...current, username: event.target.value }))
@@ -397,6 +499,7 @@ export default function ScannerPage() {
           <label>
             <Key />
             <input
+              name="password"
               value={loginForm.password}
               onChange={(event) =>
                 setLoginForm((current) => ({ ...current, password: event.target.value }))
@@ -410,8 +513,8 @@ export default function ScannerPage() {
             <button className="scanner-danger-button" type="button">
               انصراف
             </button>
-            <button className="scanner-yellow-button" onClick={login} type="button">
-              ورود
+            <button className="scanner-yellow-button" disabled={isLoggingIn} type="submit">
+              {isLoggingIn ? 'در حال ورود...' : 'ورود'}
             </button>
           </div>
         </form>
