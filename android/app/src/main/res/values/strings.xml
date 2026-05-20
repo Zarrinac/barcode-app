@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Barcode Warehouse</string>
+    <string name="title_activity_main">Barcode Warehouse</string>
+    <string name="package_name">com.hisense.barcode</string>
+    <string name="custom_url_scheme">com.hisense.barcode</string>
+</resources>

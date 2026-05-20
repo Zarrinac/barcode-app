@@ -68,6 +68,25 @@ type BootstrapData = {
   serials: SerialRecord[];
 };
 
+type AuthUser = {
+  role: string;
+  username: string;
+};
+
+type SessionResponse =
+  | {
+      authenticated: false;
+    }
+  | {
+      authenticated: true;
+      user: AuthUser;
+    };
+
+type LoginResponse = {
+  ok: true;
+  user: AuthUser;
+};
+
 type ProductDraft = {
   id?: string;
   model: string;
@@ -381,22 +400,6 @@ function readStorage<T>(key: string, fallback: T): T {
   }
 }
 
-function readLoginState() {
-  if (typeof window === 'undefined') {
-    return false;
-  }
-
-  if (new URLSearchParams(window.location.search).get('loggedIn') === '1') {
-    return true;
-  }
-
-  if (window.document.cookie.split('; ').includes('barcode-app-login=true')) {
-    return true;
-  }
-
-  return readStorage('barcode-app-login', false);
-}
-
 async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
   const response = await fetch(url, {
     ...init,
@@ -423,6 +426,7 @@ export default function Home() {
   const [locations, setLocations] = useState<LocationSummary[]>(seedLocations);
   const [dataSource, setDataSource] = useState<'sample' | 'database'>('sample');
   const [statusMessage, setStatusMessage] = useState('');
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [modelSearch, setModelSearch] = useState('');
   const [serialSearch, setSerialSearch] = useState('');
   const [serialDateFrom, setSerialDateFrom] = useState('');
@@ -442,7 +446,7 @@ export default function Home() {
   const scanInputRef = useRef<HTMLInputElement>(null);
   const modalSerialInputRef = useRef<HTMLInputElement>(null);
 
-  const [loginForm, setLoginForm] = useState({ username: 'admin', password: 'admin' });
+  const [loginForm, setLoginForm] = useState({ username: 'admin', password: '' });
   const [productDialog, setProductDialog] = useState<{
     mode: 'create' | 'edit';
     draft: ProductDraft;
@@ -481,19 +485,43 @@ export default function Home() {
   );
 
   useEffect(() => {
-    const loggedIn = readLoginState();
+    let isCancelled = false;
 
-    if (loggedIn) {
-      window.localStorage.setItem('barcode-app-login', JSON.stringify(true));
-      window.document.cookie = 'barcode-app-login=true; path=/; max-age=2592000; samesite=lax';
+    async function loadSession() {
+      try {
+        const response = await fetch('/api/session', { cache: 'no-store' });
+        const session = (await response.json()) as SessionResponse;
+
+        if (isCancelled) {
+          return;
+        }
+
+        if (session.authenticated) {
+          setCurrentUser(session.user);
+          setIsLoggedIn(true);
+          window.localStorage.setItem('barcode-app-login', JSON.stringify(true));
+        } else {
+          setCurrentUser(null);
+          setIsLoggedIn(false);
+          window.localStorage.removeItem('barcode-app-login');
+        }
+      } catch {
+        if (!isCancelled) {
+          setCurrentUser(null);
+          setIsLoggedIn(false);
+        }
+      } finally {
+        if (!isCancelled) {
+          setHasHydrated(true);
+        }
+      }
     }
 
-    const timeout = window.setTimeout(() => {
-      setIsLoggedIn(loggedIn);
-      setHasHydrated(true);
-    }, 0);
+    void loadSession();
 
-    return () => window.clearTimeout(timeout);
+    return () => {
+      isCancelled = true;
+    };
   }, []);
 
   useEffect(() => {
@@ -553,9 +581,6 @@ export default function Home() {
     }
 
     window.localStorage.setItem('barcode-app-login', JSON.stringify(isLoggedIn));
-    window.document.cookie = `barcode-app-login=${isLoggedIn ? 'true' : ''}; path=/; max-age=${
-      isLoggedIn ? 2592000 : 0
-    }; samesite=lax`;
   }, [hasHydrated, isLoggedIn]);
 
   const isSerialDialogOpen = serialDialog !== null;
@@ -647,15 +672,33 @@ export default function Home() {
     setActiveView(id);
   };
 
-  const login = () => {
-    window.localStorage.setItem('barcode-app-login', JSON.stringify(true));
-    window.document.cookie = 'barcode-app-login=true; path=/; max-age=2592000; samesite=lax';
-    setIsLoggedIn(true);
+  const login = async (event?: React.FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
+
+    try {
+      const data = await apiRequest<LoginResponse>('/api/login', {
+        body: JSON.stringify(loginForm),
+        method: 'POST',
+      });
+
+      window.localStorage.setItem('barcode-app-login', JSON.stringify(true));
+      setCurrentUser(data.user);
+      setIsLoggedIn(true);
+      setStatusMessage('');
+    } catch (error) {
+      window.localStorage.removeItem('barcode-app-login');
+      setCurrentUser(null);
+      setIsLoggedIn(false);
+      setStatusMessage(error instanceof Error ? error.message : 'ورود ناموفق بود.');
+    }
   };
 
-  const logout = () => {
+  const logout = async (event?: React.FormEvent<HTMLFormElement>) => {
+    event?.preventDefault();
+
+    await fetch('/api/logout', { method: 'POST' }).catch(() => undefined);
     window.localStorage.removeItem('barcode-app-login');
-    window.document.cookie = 'barcode-app-login=; path=/; max-age=0; samesite=lax';
+    setCurrentUser(null);
     setIsLoggedIn(false);
   };
 
@@ -976,18 +1019,12 @@ export default function Home() {
             </div>
           </div>
 
-          <form
-            action="/api/login"
-            className="login-form"
-            method="post"
-            onSubmit={() => {
-              login();
-            }}
-          >
+          <form className="login-form" onSubmit={login}>
             <label className="field with-icon">
               <span>نام کاربری</span>
               <LoginOutlined />
               <input
+                name="username"
                 value={loginForm.username}
                 onChange={(event) =>
                   setLoginForm((current) => ({ ...current, username: event.target.value }))
@@ -999,6 +1036,7 @@ export default function Home() {
               <span>رمز عبور</span>
               <BadgeOutlined />
               <input
+                name="password"
                 value={loginForm.password}
                 onChange={(event) =>
                   setLoginForm((current) => ({ ...current, password: event.target.value }))
@@ -1007,7 +1045,8 @@ export default function Home() {
                 autoComplete="current-password"
               />
             </label>
-            <button className="primary-button login-button" onClick={login} type="submit">
+            {statusMessage && <p className="status-message">{statusMessage}</p>}
+            <button className="primary-button login-button" type="submit">
               ورود
             </button>
           </form>
@@ -1046,10 +1085,10 @@ export default function Home() {
         <header className="topbar">
           <div className="user-line">
             <DashboardOutlined />
-            <span>کاربر جاری: admin</span>
+            <span>کاربر جاری: {currentUser?.username ?? '-'}</span>
           </div>
-          <form action="/api/logout" method="post">
-            <button className="ghost-button" onClick={logout} type="submit">
+          <form onSubmit={logout}>
+            <button className="ghost-button" type="submit">
               <Logout />
               خروج
             </button>
