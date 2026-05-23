@@ -70,6 +70,7 @@ type LoginResponse = {
 };
 
 const scannerStorageKey = 'barcode-app-scanner-session';
+const scannerSuccessToastMs = 2800;
 
 const persianDatePartsFormatter = new Intl.DateTimeFormat('en-US-u-ca-persian', {
   day: '2-digit',
@@ -103,6 +104,18 @@ function normalizeNumberInput(value: string) {
   });
 
   return normalizedDigits.replace(/\D/g, '');
+}
+
+function getDefaultStatusMessage(step: ScannerStep) {
+  if (step === 'login') {
+    return 'نام کاربری و رمز عبور را وارد کنید.';
+  }
+
+  if (step === 'document') {
+    return 'آماده ثبت سند';
+  }
+
+  return 'جمع آوری بارکد';
 }
 
 async function apiRequest<T>(url: string, init?: RequestInit): Promise<T> {
@@ -143,6 +156,14 @@ export default function ScannerPage() {
   const productInputRef = useRef<HTMLInputElement>(null);
   const trackingInputRef = useRef<HTMLInputElement>(null);
   const serialInputRef = useRef<HTMLInputElement>(null);
+
+  const goToStep = useCallback((nextStep: ScannerStep, options?: { keepToast?: boolean }) => {
+    if (!options?.keepToast) {
+      setToast(null);
+    }
+    setStep(nextStep);
+    setStatusMessage(getDefaultStatusMessage(nextStep));
+  }, []);
 
   const modelByProductCode = useMemo(() => {
     return new Map(models.map((model) => [model.productCode, model]));
@@ -186,8 +207,7 @@ export default function ScannerPage() {
           setSerialNo('');
           setDocumentNo('');
           setCustomerName('');
-          setStep('login');
-          setStatusMessage('نام کاربری و رمز عبور را وارد کنید.');
+          goToStep('login');
         }
 
         return;
@@ -206,8 +226,7 @@ export default function ScannerPage() {
         }
 
         setDate(formatPersianDate(new Date()));
-        setStep('document');
-        setStatusMessage('آماده ثبت سند');
+        goToStep('document');
       } catch {
         if (!isCancelled) {
           setStatusMessage('نام کاربری و رمز عبور را وارد کنید.');
@@ -220,7 +239,7 @@ export default function ScannerPage() {
     return () => {
       isCancelled = true;
     };
-  }, []);
+  }, [goToStep]);
 
   useEffect(() => {
     if (step !== 'collect') {
@@ -248,16 +267,9 @@ export default function ScannerPage() {
     }
 
     if (step === 'collect') {
-      window.requestAnimationFrame(() =>
-        (productCode
-          ? acPart === 'panel'
-            ? serialInputRef.current
-            : trackingInputRef.current
-          : productInputRef.current
-        )?.focus(),
-      );
+      window.requestAnimationFrame(() => productInputRef.current?.focus());
     }
-  }, [acPart, productCode, step]);
+  }, [step]);
 
   const addRow = useCallback(() => {
     const cleanProductCode = normalizeNumberInput(productCode);
@@ -318,8 +330,7 @@ export default function ScannerPage() {
       });
       window.localStorage.setItem('barcode-app-login', JSON.stringify(true));
       setDate(formatPersianDate(new Date()));
-      setStep('document');
-      setStatusMessage('آماده ثبت سند');
+      goToStep('document');
     } catch (error) {
       window.localStorage.removeItem('barcode-app-login');
       setStatusMessage(error instanceof Error ? error.message : 'ورود ناموفق بود.');
@@ -337,8 +348,7 @@ export default function ScannerPage() {
       return;
     }
 
-    setStep('collect');
-    setStatusMessage('جمع آوری بارکد');
+    goToStep('collect');
   };
 
   const handleScanEnter = (
@@ -401,13 +411,14 @@ export default function ScannerPage() {
       setProductCode('');
       setTrackingCode('');
       setSerialNo('');
+      setAcPart(null);
       setDocumentNo('');
       setCustomerName('');
       setDate(formatPersianDate(new Date()));
-      setStep('document');
+      goToStep('document', { keepToast: true });
       setIsCompleting(false);
       window.localStorage.removeItem(scannerStorageKey);
-    }, 1800);
+    }, scannerSuccessToastMs);
   };
 
   const sendRows = async () => {
@@ -549,7 +560,7 @@ export default function ScannerPage() {
             </button>
             <button
               className="scanner-danger-button compact"
-              onClick={() => setStep('login')}
+              onClick={() => goToStep('login')}
               type="button"
             >
               خروج
@@ -568,7 +579,7 @@ export default function ScannerPage() {
           <Menu />
         </button>
         <h1>اسکن کالا</h1>
-        <button aria-label="خانه" onClick={() => setStep('document')} type="button">
+        <button aria-label="خانه" onClick={() => goToStep('document')} type="button">
           <Home />
         </button>
       </header>
