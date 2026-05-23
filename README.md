@@ -1,6 +1,6 @@
 # Barcode Warehouse
 
-Next.js warehouse barcode scanner and inventory app with PostgreSQL, Prisma, PWA support, and an Android Capacitor wrapper for `/scanner`.
+Next.js warehouse barcode scanner and inventory app with PostgreSQL, Prisma, PWA support, nginx deployment, and an Android Capacitor wrapper for `/scanner`.
 
 ## Getting Started
 
@@ -29,6 +29,13 @@ Default seeded users:
 
 See [DEPLOYMENT.md](./DEPLOYMENT.md).
 
+## Documentation
+
+- [GitHub beta documentation - English](./docs/GITHUB_DOCUMENTATION_EN.md)
+- [مستندات بتا برای GitHub - فارسی](./docs/GITHUB_DOCUMENTATION_FA.md)
+- [End-user guide - English](./docs/USER_GUIDE_EN.md)
+- [راهنمای کاربر نهایی - فارسی](./docs/USER_GUIDE_FA.md)
+
 Quick server flow:
 
 ```bash
@@ -49,6 +56,12 @@ npm run android:apk
 For a real server APK:
 
 ```powershell
-$env:CAPACITOR_SERVER_URL="https://your-domain.example.com/scanner?freshLogin=1"
+$env:CAPACITOR_SERVER_URL="http://bcrs.dcode.co.ir/scanner?freshLogin=1"
 npm run android:apk
+```
+
+The Android app is a Capacitor shell that opens the deployed scanner page at:
+
+```txt
+http://bcrs.dcode.co.ir/scanner?freshLogin=1
 ```
