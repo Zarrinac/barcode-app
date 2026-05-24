@@ -384,6 +384,203 @@ const scanModeOptions: Array<{ id: ScanMode; label: string }> = [
   { id: 'lookup', label: 'استعلام' },
 ];
 
+function cx(...classes: Array<string | false | null | undefined>) {
+  return classes.filter(Boolean).join(' ');
+}
+
+const adminUi = {
+  loginShell:
+    'grid min-h-screen place-items-center bg-gradient-to-br from-dcode-bg from-0% via-[#111111] via-[44%] to-dcode-light to-[44.2%] p-8 font-sans text-dcode-ink max-[680px]:p-4',
+  loginCard:
+    'grid w-[min(960px,100%)] grid-cols-2 items-center overflow-hidden rounded-[28px] border border-white/35 bg-white/75 shadow-[0_28px_80px_rgb(9_23_33_/_22%)] backdrop-blur-[18px] max-[680px]:grid-cols-1',
+  loginVisual:
+    'relative grid min-h-[460px] place-items-center overflow-hidden bg-dcode-bg max-[680px]:min-h-[220px]',
+  loginBrandLogo: 'relative z-[1] h-auto w-[min(340px,76%)] max-[680px]:w-[min(250px,70%)]',
+  loginForm:
+    'relative grid gap-[18px] bg-gradient-to-b from-white/90 to-white/65 px-16 py-[70px] before:text-[28px] before:font-black before:text-dcode-bg before:content-["ورود_به_سامانه"] after:-mt-2.5 after:mb-2 after:text-[13px] after:font-bold after:text-slate-500 after:content-["مدیریت_سریع_ورود_و_خروج_کالا_با_اسکن_بارکد"] max-[680px]:px-6 max-[680px]:py-8',
+  loginField: 'relative grid gap-[7px] text-[13px] font-bold text-slate-600',
+  loginFieldIcon: 'absolute right-[18px] bottom-[13px] !size-[1.15em] text-dcode-red',
+  loginInput:
+    'h-[54px] w-full rounded-full border-0 bg-slate-50 px-3 pr-12 text-dcode-ink outline-none transition focus:border-dcode-red focus:shadow-[0_0_0_4px_rgb(255_43_61_/_11%)]',
+  statusMessage:
+    '-mt-1 mb-3.5 rounded-xl border border-dcode-red/20 bg-[#fff1f3] px-4 py-3 font-extrabold text-[#c70f20]',
+  primaryButton:
+    'inline-flex min-h-[42px] items-center justify-center gap-[7px] rounded-xl border-0 bg-gradient-to-br from-dcode-red to-[#c70f20] px-[18px] font-extrabold text-white shadow-[0_10px_20px_rgb(15_35_52_/_14%)] transition hover:-translate-y-px hover:saturate-[1.08] hover:shadow-[0_12px_24px_rgb(15_35_52_/_17%)] disabled:cursor-wait disabled:opacity-70',
+  loginButton: 'mt-1 h-14 rounded-full',
+  button:
+    'inline-flex min-h-[42px] items-center justify-center gap-[7px] rounded-xl border-0 px-[18px] font-extrabold text-white shadow-[0_10px_20px_rgb(15_35_52_/_14%)] transition hover:-translate-y-px hover:saturate-[1.08] hover:shadow-[0_12px_24px_rgb(15_35_52_/_17%)] disabled:cursor-wait disabled:opacity-70 max-[380px]:px-3',
+  buttonRed: 'bg-gradient-to-br from-dcode-red to-[#c70f20]',
+  buttonDark: 'bg-gradient-to-br from-[#111111] to-dcode-bg',
+  buttonGold: 'bg-gradient-to-br from-[#d6a100] to-[#a87900]',
+  ghostButton: 'bg-white/15 shadow-none',
+  ghostPanelButton:
+    'inline-flex min-h-[42px] items-center justify-center rounded-xl border border-dcode-line bg-white px-[18px] font-black text-dcode-bg',
+  miniButton:
+    'inline-flex min-h-9 items-center justify-center gap-[7px] rounded-[10px] border-0 px-3 text-xs font-extrabold text-white shadow-[0_10px_20px_rgb(15_35_52_/_14%)] transition hover:-translate-y-px hover:saturate-[1.08]',
+  appShell:
+    'grid min-h-screen grid-cols-[260px_minmax(0,1fr)] gap-[18px] p-4 font-sans text-dcode-ink max-[980px]:grid-cols-1 max-[980px]:p-2.5 max-[680px]:gap-2.5 max-[680px]:p-2 max-[380px]:p-1.5',
+  sidebar:
+    'sticky top-4 flex h-[calc(100vh-32px)] flex-col gap-[22px] rounded-[18px] border border-white/10 bg-gradient-to-b from-[#151b27] to-[#05070c] px-[18px] py-6 text-white shadow-[0_18px_42px_rgb(12_18_30_/_10%)] max-[980px]:static max-[980px]:h-auto max-[680px]:gap-3.5 max-[680px]:rounded-2xl max-[680px]:p-4 max-[680px]:px-3.5',
+  brand:
+    'flex items-center justify-between gap-3 border-b border-white/15 pb-[22px] max-[680px]:pb-3.5',
+  brandText: 'block text-[15px] font-bold',
+  brandSubtext: 'mt-1.5 block text-xs text-white/60',
+  brandLogo: 'h-auto w-28',
+  navList: 'grid gap-2 max-[980px]:grid-cols-2 max-[680px]:grid-cols-1',
+  navItem:
+    'flex h-[52px] items-center gap-2.5 rounded-xl border-0 bg-transparent px-3.5 text-right text-white/85 transition hover:-translate-x-0.5 hover:bg-dcode-red/15 hover:text-white max-[680px]:h-[46px] max-[680px]:rounded-[10px] max-[680px]:hover:translate-x-0',
+  navItemActive: 'bg-dcode-red/15 text-white shadow-[inset_3px_0_0_#ff2b3d]',
+  workspace: 'flex min-w-0 flex-col gap-4',
+  topbar:
+    'flex min-h-[58px] items-center justify-between gap-3.5 rounded-2xl border border-white/25 bg-gradient-to-br from-dcode-bg to-[#111111] px-[18px] text-white shadow-[0_10px_26px_rgb(12_18_30_/_7%)] max-[680px]:min-h-0 max-[680px]:flex-col max-[680px]:items-stretch max-[680px]:p-3.5',
+  userLine: 'flex items-center gap-2 font-bold max-[680px]:flex-wrap',
+  statsGrid: 'grid grid-cols-2 gap-3 max-[980px]:grid-cols-2 max-[680px]:gap-2.5',
+  statCard:
+    'min-h-[86px] rounded-2xl border border-dcode-bg/10 border-t-4 border-t-dcode-red bg-white p-4 shadow-[0_10px_26px_rgb(12_18_30_/_7%)] max-[680px]:min-h-[74px] max-[680px]:px-3.5 max-[680px]:py-3',
+  statLabel: 'block text-[13px] text-slate-500',
+  statValue: 'mt-2 block text-3xl leading-none font-black max-[680px]:text-2xl',
+  contentPanel:
+    'min-h-[520px] rounded-[18px] border border-dcode-bg/10 bg-white p-[26px] shadow-[0_18px_42px_rgb(12_18_30_/_10%)] max-[680px]:min-h-0 max-[680px]:min-w-0 max-[680px]:rounded-2xl max-[680px]:p-4 max-[380px]:p-3.5',
+  panelHeading:
+    'mb-6 flex items-start justify-between gap-4 max-[680px]:mb-[18px] max-[680px]:flex-col max-[680px]:items-stretch max-[680px]:gap-3',
+  panelTitle:
+    'm-0 text-[clamp(28px,4vw,44px)] font-black text-dcode-bg max-[680px]:text-[26px] max-[680px]:leading-tight',
+  panelSubtitle: 'mt-2 text-slate-500 max-[680px]:text-[13px]',
+  emptyAction:
+    'grid min-h-80 place-items-center content-center gap-[18px] rounded-[18px] border border-dashed border-dcode-red/30 bg-gradient-to-b from-white to-slate-50 text-center text-dcode-bg max-[680px]:min-h-[220px] max-[680px]:p-[18px]',
+  compactEmpty: 'mr-auto max-w-[560px]',
+  emptyIcon: '!size-[46px] text-dcode-red',
+  emptyTitle: 'text-lg font-bold',
+  scanPanel: 'grid w-[min(760px,100%)] gap-4 max-[680px]:w-full',
+  scanModeGroup:
+    'grid grid-cols-3 gap-2.5 rounded-2xl border border-dcode-line bg-slate-50 p-1.5 max-[680px]:rounded-[14px]',
+  scanMode: 'min-h-[46px] rounded-xl border-0 bg-transparent font-black text-slate-500',
+  scanModeActive:
+    'bg-gradient-to-br from-dcode-red to-[#c70f20] text-white shadow-[0_10px_22px_rgb(255_43_61_/_18%)]',
+  adminScanForm:
+    'grid grid-cols-[minmax(0,1fr)_auto] items-end gap-3 rounded-[18px] border border-dcode-bg/12 bg-gradient-to-b from-white to-slate-50 p-[18px] shadow-[0_10px_26px_rgb(12_18_30_/_7%)] max-[680px]:grid-cols-1 max-[680px]:rounded-[14px] max-[680px]:p-3.5',
+  adminScanInputWrap: 'relative grid gap-2 text-[13px] font-extrabold text-slate-600',
+  adminScanIcon: 'absolute right-3.5 bottom-3.5 !size-[22px] text-dcode-red',
+  adminScanInput:
+    'h-[58px] w-full rounded-[14px] border border-dcode-bg/12 bg-white px-3.5 pr-12 text-lg font-black text-dcode-bg uppercase outline-none focus:border-dcode-red focus:shadow-[0_0_0_5px_rgb(255_43_61_/_11%)] max-[680px]:h-14 max-[680px]:text-base',
+  scanResult:
+    'grid gap-3 rounded-[18px] border border-dcode-bg/12 bg-slate-50 p-4 max-[680px]:p-3.5',
+  scanResultWarn: 'border-[#d6a100]/35 bg-[#fffaf2]',
+  scanResultHeader: 'grid gap-1.5',
+  scanResultLabel: 'text-xs font-extrabold text-slate-500',
+  scanResultValue: '[overflow-wrap:anywhere] text-lg font-bold text-dcode-bg',
+  scanResultMessage: 'm-0 font-black text-[#c70f20]',
+  scanResultWarnMessage: 'text-[#9a640b]',
+  scanResultGrid: 'grid gap-0.5 border-t border-slate-200 pt-1',
+  scanSecondaryActions: 'flex flex-wrap gap-2.5',
+  toolbar:
+    'mb-4 flex items-end justify-between gap-4 max-[680px]:flex-col max-[680px]:items-stretch',
+  exportActions: 'flex flex-wrap gap-2 max-[680px]:w-full',
+  searchBox:
+    'relative grid min-w-[500px] gap-[7px] text-[13px] font-bold text-slate-500 max-[680px]:min-w-0 max-[680px]:w-full',
+  searchIcon: 'absolute right-3 bottom-3 !size-[1.15em] text-slate-500',
+  searchInput:
+    'h-11 w-full rounded-[10px] border border-slate-300 bg-slate-50 px-3 pr-[38px] text-dcode-ink outline-none focus:border-dcode-red focus:shadow-[0_0_0_4px_rgb(255_43_61_/_11%)]',
+  serialDateFilters:
+    'my-[18px] mb-5 grid w-full grid-cols-[250px_300px_300px_1fr_250px] items-end gap-x-[18px] gap-y-6 rounded-2xl border border-slate-300/80 bg-gradient-to-b from-white to-slate-50 px-4 py-3.5 shadow-[0_12px_28px_rgb(15_35_52_/_7%)] max-[680px]:grid-cols-1',
+  serialDateCaption:
+    'col-start-1 ml-3 self-center whitespace-nowrap text-[15px] font-black text-dcode-bg before:ml-2 before:inline-block before:size-2 before:rounded-full before:bg-dcode-red before:shadow-[0_0_0_4px_rgb(255_43_61_/_12%)]',
+  serialDateClear:
+    'col-start-5 min-h-11 whitespace-nowrap rounded-[10px] px-3.5 shadow-none max-[680px]:col-start-auto',
+  tableOptions: 'mb-3.5 -mt-1 flex justify-start max-[680px]:justify-end',
+  tableWrap:
+    'max-h-[min(62vh,680px)] overflow-auto rounded-[14px] border border-dcode-line bg-white shadow-[inset_0_1px_0_rgb(255_255_255_/_85%)] [scrollbar-gutter:stable_both-edges] max-[680px]:hidden',
+  table:
+    'w-full min-w-[980px] border-separate border-spacing-0 text-slate-600 [&_td]:whitespace-nowrap [&_td]:border-b [&_td]:border-l [&_td]:border-slate-100 [&_td]:px-3.5 [&_td]:py-3 [&_td]:text-right [&_th]:sticky [&_th]:top-0 [&_th]:z-[1] [&_th]:whitespace-nowrap [&_th]:border-b [&_th]:border-l [&_th]:border-slate-100 [&_th]:bg-slate-100 [&_th]:px-3.5 [&_th]:py-3 [&_th]:text-right [&_th]:text-[13px] [&_th]:font-black [&_th]:text-slate-700 [&_tbody_tr:nth-child(odd)]:bg-white [&_tbody_tr:nth-child(even)]:bg-slate-50 [&_tbody_tr:hover]:bg-[#fff1f3]',
+  serialTable: 'min-w-[1720px] [&_td:nth-child(8)]:min-w-[250px] [&_th:nth-child(8)]:min-w-[250px]',
+  mobileRecordList: 'hidden gap-3 max-[680px]:grid',
+  recordCard:
+    'grid gap-3.5 rounded-2xl border border-dcode-line bg-gradient-to-b from-white to-slate-50 p-3.5 shadow-[0_10px_26px_rgb(12_18_30_/_7%)]',
+  recordCardHeader: 'flex items-center justify-between gap-3 border-b border-slate-200 pb-2.5',
+  recordCardTitle: 'min-w-0 [overflow-wrap:anywhere] text-base font-bold text-dcode-bg',
+  recordCardIndex: 'shrink-0 font-black text-[#c70f20]',
+  recordCardGrid: 'grid gap-0.5',
+  recordCardFooter: 'flex items-start justify-between gap-3 pt-0.5 max-[680px]:flex-col',
+  recordField:
+    'flex min-h-[34px] items-center justify-between gap-3 border-b border-slate-100 py-[7px] last:border-b-0',
+  recordFieldLabel: 'text-xs font-extrabold text-slate-500',
+  recordFieldValue:
+    'min-w-0 text-left text-[13px] font-[850] text-slate-700 [overflow-wrap:anywhere] [unicode-bidi:plaintext]',
+  emptyRecords:
+    'm-0 rounded-[14px] border border-dashed border-dcode-red/30 bg-slate-50 p-[18px] text-center font-extrabold text-slate-500',
+  rowActions: 'flex gap-2 max-[680px]:w-full max-[680px]:flex-wrap',
+  statusPill:
+    'inline-flex h-[34px] min-w-[78px] items-center justify-center rounded-full text-xs font-black text-white',
+  statusGreen: 'bg-gradient-to-br from-dcode-red to-[#c70f20]',
+  statusOrange: 'bg-gradient-to-br from-[#d6a100] to-[#a87900]',
+  paginationRow:
+    'mt-4 flex items-center justify-between gap-4 font-bold text-slate-500 max-[680px]:flex-col max-[680px]:items-stretch',
+  paginationStatus: 'text-center max-[680px]:text-right',
+  paginationControls:
+    'flex flex-wrap items-center justify-end gap-2 [direction:ltr] max-[680px]:justify-center',
+  paginationButton:
+    'h-[34px] min-w-[34px] rounded-[7px] border-0 bg-transparent font-extrabold text-slate-600 disabled:cursor-not-allowed disabled:opacity-45',
+  pageNumber: 'min-w-9 bg-slate-100 px-2.5',
+  activePage: 'min-w-9 bg-[#fff1f3] px-2.5 text-[#c70f20]',
+  paginationEllipsis:
+    'inline-flex h-[34px] min-w-6 items-center justify-center font-black text-slate-500',
+  pageSizeControl: 'flex items-center gap-2 max-[680px]:w-full',
+  pageSizeLabel: 'whitespace-nowrap',
+  pageSizeSelect:
+    'h-9 min-w-[76px] rounded-[9px] border border-slate-300 bg-slate-50 px-2.5 font-black text-dcode-ink',
+  locationGrid: 'grid grid-cols-4 gap-3.5 max-[980px]:grid-cols-2 max-[680px]:grid-cols-1',
+  locationCard:
+    'flex min-h-[116px] items-center justify-between gap-3.5 rounded-2xl border border-dcode-line bg-gradient-to-b from-white to-slate-50 p-[18px] shadow-[0_10px_26px_rgb(12_18_30_/_7%)] max-[680px]:grid max-[680px]:min-h-24 max-[680px]:grid-cols-[auto_minmax(0,1fr)] max-[680px]:justify-stretch max-[680px]:p-4',
+  locationIcon: '!size-[34px] text-dcode-red max-[680px]:!size-[30px]',
+  locationBody: 'min-w-0 flex-1',
+  locationTitle:
+    'block text-base font-bold max-[680px]:text-[15px] max-[680px]:[overflow-wrap:anywhere]',
+  locationMeta: 'mt-1.5 block text-[13px] text-slate-500',
+  modalBackdrop:
+    'fixed inset-0 z-50 grid place-items-center bg-dcode-bg/65 p-[22px] backdrop-blur-[10px] max-[680px]:items-start max-[680px]:overflow-auto max-[680px]:p-2.5 max-[380px]:p-2',
+  modalCard:
+    'max-h-[min(860px,calc(100vh-44px))] w-[min(560px,100%)] overflow-auto rounded-[22px] border border-white/70 bg-gradient-to-b from-white to-slate-50 shadow-[0_34px_90px_rgb(9_23_33_/_34%)] max-[680px]:max-h-none max-[680px]:w-full max-[680px]:rounded-[18px]',
+  modalCardWide: 'w-[min(860px,100%)]',
+  modalHeading:
+    'sticky top-0 z-[1] flex items-start justify-between gap-3.5 border-b border-dcode-line bg-gradient-to-b from-white to-slate-50 px-6 py-[22px] max-[680px]:gap-2.5 max-[680px]:px-4 max-[680px]:py-[18px] max-[380px]:px-3.5',
+  modalTitle:
+    'm-0 text-2xl font-black text-dcode-bg max-[680px]:text-[22px] max-[680px]:leading-tight',
+  modalSubtitle:
+    'mt-2 text-[13px] font-bold text-slate-500 max-[680px]:text-xs max-[680px]:leading-[1.8]',
+  modalClose:
+    'h-[38px] w-[38px] rounded-xl border-0 bg-slate-100 text-2xl leading-none text-dcode-bg max-[680px]:h-9 max-[680px]:w-9',
+  modalForm:
+    'grid grid-cols-1 gap-4 p-6 max-[680px]:gap-3.5 max-[680px]:px-4 max-[680px]:py-[18px] max-[380px]:px-3.5',
+  modalFormWide: 'grid-cols-2 max-[680px]:grid-cols-1',
+  field: 'grid gap-[7px] text-[13px] font-bold text-slate-600',
+  fieldWide: 'col-span-full',
+  fieldInput:
+    'h-11 w-full rounded-[10px] border border-slate-300 bg-slate-50 px-3 text-dcode-ink outline-none transition focus:border-dcode-red focus:shadow-[0_0_0_4px_rgb(255_43_61_/_11%)]',
+  dateField: 'relative grid gap-[7px] text-[13px] font-bold text-slate-600',
+  dateTrigger:
+    'flex h-11 w-full items-center justify-between gap-2.5 rounded-[10px] border border-slate-300 bg-slate-50 px-3 text-right font-extrabold text-dcode-ink outline-none focus:border-dcode-red focus:shadow-[0_0_0_4px_rgb(255_43_61_/_11%)]',
+  dateTriggerActive: 'border-dcode-red shadow-[0_0_0_4px_rgb(255_43_61_/_11%)]',
+  dateTriggerEmpty: 'font-bold text-slate-500',
+  dateIcon: '!size-[1.15em] text-dcode-red',
+  calendar:
+    'absolute top-[calc(100%+8px)] right-0 z-[5] w-[min(330px,88vw)] rounded-2xl border border-slate-300 bg-gradient-to-b from-white to-slate-50 p-3.5 shadow-[0_24px_60px_rgb(9_23_33_/_18%)] max-[680px]:w-[min(300px,calc(100vw-52px))]',
+  calendarHeader: 'mb-3 flex items-center justify-between gap-2.5',
+  calendarTitle: 'text-[15px] text-dcode-bg',
+  calendarNavButton:
+    'h-[34px] w-[34px] rounded-[10px] border-0 bg-slate-100 text-[22px] font-black text-dcode-bg',
+  calendarGrid: 'grid grid-cols-7 gap-1.5',
+  calendarWeekday: 'grid h-[26px] place-items-center text-xs font-black text-slate-500',
+  calendarEmpty: 'h-[34px]',
+  calendarDay:
+    'grid h-[34px] place-items-center rounded-[10px] border-0 bg-slate-100 font-black text-dcode-bg hover:bg-dcode-red hover:text-white',
+  calendarDaySelected: 'bg-dcode-red text-white',
+  calendarToday: 'mt-3 h-9 w-full rounded-[10px] border-0 bg-[#fff1f3] font-black text-[#c70f20]',
+  modalActions:
+    'col-span-full mt-2 flex items-center justify-start gap-2.5 max-[680px]:flex-col-reverse max-[680px]:items-stretch',
+  confirmActions:
+    'flex items-center justify-start gap-2.5 p-6 max-[680px]:flex-col-reverse max-[680px]:items-stretch',
+};
+
 function readStorage<T>(key: string, fallback: T): T {
   if (typeof window === 'undefined') {
     return fallback;
@@ -1006,11 +1203,11 @@ export default function Home() {
 
   if (!isLoggedIn) {
     return (
-      <main className="login-shell" dir="rtl">
-        <section className="login-card" aria-label="ورود به برنامه انبار">
-          <div className="login-visual" aria-hidden="true">
+      <main className={adminUi.loginShell} dir="rtl">
+        <section className={adminUi.loginCard} aria-label="ورود به برنامه انبار">
+          <div className={adminUi.loginVisual} aria-hidden="true">
             <Image
-              className="login-brand-logo"
+              className={adminUi.loginBrandLogo}
               src="/favicon/source/dcode-wordmark-light.png"
               alt=""
               width={736}
@@ -1019,11 +1216,12 @@ export default function Home() {
             />
           </div>
 
-          <form className="login-form" onSubmit={login}>
-            <label className="field with-icon">
+          <form className={adminUi.loginForm} onSubmit={login}>
+            <label className={adminUi.loginField}>
               <span>نام کاربری</span>
-              <LoginOutlined />
+              <LoginOutlined className={adminUi.loginFieldIcon} />
               <input
+                className={adminUi.loginInput}
                 name="username"
                 value={loginForm.username}
                 onChange={(event) =>
@@ -1032,10 +1230,11 @@ export default function Home() {
                 autoComplete="username"
               />
             </label>
-            <label className="field with-icon">
+            <label className={adminUi.loginField}>
               <span>رمز عبور</span>
-              <BadgeOutlined />
+              <BadgeOutlined className={adminUi.loginFieldIcon} />
               <input
+                className={adminUi.loginInput}
                 name="password"
                 value={loginForm.password}
                 onChange={(event) =>
@@ -1045,8 +1244,8 @@ export default function Home() {
                 autoComplete="current-password"
               />
             </label>
-            {statusMessage && <p className="status-message">{statusMessage}</p>}
-            <button className="primary-button login-button" type="submit">
+            {statusMessage && <p className={adminUi.statusMessage}>{statusMessage}</p>}
+            <button className={cx(adminUi.primaryButton, adminUi.loginButton)} type="submit">
               ورود
             </button>
           </form>
@@ -1056,15 +1255,15 @@ export default function Home() {
   }
 
   return (
-    <main className="app-shell" dir="rtl">
-      <aside className="sidebar" aria-label="منوی اصلی">
-        <div className="brand">
+    <main className={adminUi.appShell} dir="rtl">
+      <aside className={adminUi.sidebar} aria-label="منوی اصلی">
+        <div className={adminUi.brand}>
           <div>
-            <strong>D&apos;CODE</strong>
-            <span>سامانه انبار و سریال</span>
+            <strong className={adminUi.brandText}>D&apos;CODE</strong>
+            <span className={adminUi.brandSubtext}>سامانه انبار و سریال</span>
           </div>
           <Image
-            className="brand-logo"
+            className={adminUi.brandLogo}
             src="/favicon/source/dcode-wordmark-light.png"
             alt="D'CODE"
             width={147}
@@ -1072,10 +1271,10 @@ export default function Home() {
           />
         </div>
 
-        <nav className="nav-list">
+        <nav className={adminUi.navList}>
           {menuItems.map((item) => (
             <button
-              className={activeView === item.id ? 'nav-item active' : 'nav-item'}
+              className={cx(adminUi.navItem, activeView === item.id && adminUi.navItemActive)}
               key={item.id}
               onClick={() => handleMenuClick(item.id)}
               type="button"
@@ -1087,42 +1286,48 @@ export default function Home() {
         </nav>
       </aside>
 
-      <section className="workspace">
-        <header className="topbar">
-          <div className="user-line">
+      <section className={adminUi.workspace}>
+        <header className={adminUi.topbar}>
+          <div className={adminUi.userLine}>
             <DashboardOutlined />
             <span>کاربر جاری: {currentUser?.username ?? '-'}</span>
           </div>
           <form onSubmit={logout}>
-            <button className="ghost-button" type="submit">
+            <button className={cx(adminUi.button, adminUi.ghostButton)} type="submit">
               <Logout />
               خروج
             </button>
           </form>
         </header>
 
-        <section className="stats-grid" aria-label="خلاصه وضعیت انبار">
+        <section className={adminUi.statsGrid} aria-label="خلاصه وضعیت انبار">
           <StatCard label="کل سریال" value={stats.serials} tone="green" />
           <StatCard label="مدل کالا" value={stats.models} tone="blue" />
         </section>
 
-        {statusMessage && <p className="status-message">{statusMessage}</p>}
+        {statusMessage && <p className={adminUi.statusMessage}>{statusMessage}</p>}
 
         {activeView === 'serial-new' && (
           <ContentPanel
             title="اسکن بارکد"
             subtitle="ثبت سریع ورود، خروج و استعلام"
             action={
-              <button className="secondary-button" onClick={() => setActiveView('serial-list')}>
+              <button
+                className={cx(adminUi.button, adminUi.buttonRed)}
+                onClick={() => setActiveView('serial-list')}
+              >
                 مشاهده لیست
               </button>
             }
           >
-            <section className="scanner-panel">
-              <div className="scanner-mode-group" aria-label="نوع عملیات اسکن">
+            <section className={adminUi.scanPanel}>
+              <div className={adminUi.scanModeGroup} aria-label="نوع عملیات اسکن">
                 {scanModeOptions.map((option) => (
                   <button
-                    className={scanMode === option.id ? 'scanner-mode active' : 'scanner-mode'}
+                    className={cx(
+                      adminUi.scanMode,
+                      scanMode === option.id && adminUi.scanModeActive,
+                    )}
                     key={option.id}
                     onClick={() => {
                       setScanMode(option.id);
@@ -1136,17 +1341,19 @@ export default function Home() {
               </div>
 
               {(scanContext.model || scanContext.trackingCode) && (
-                <article className="scan-result context">
-                  <div>
-                    <span>آماده برای ثبت سریال</span>
-                    <strong>{scanContext.model?.model ?? 'مدل انتخاب نشده'}</strong>
+                <article className={adminUi.scanResult}>
+                  <div className={adminUi.scanResultHeader}>
+                    <span className={adminUi.scanResultLabel}>آماده برای ثبت سریال</span>
+                    <strong className={adminUi.scanResultValue}>
+                      {scanContext.model?.model ?? 'مدل انتخاب نشده'}
+                    </strong>
                   </div>
-                  <div className="scan-result-grid">
+                  <div className={adminUi.scanResultGrid}>
                     <RecordField label="شناسه کالا" value={scanContext.model?.productCode || '-'} />
                     <RecordField label="کد رهگیری" value={scanContext.trackingCode || '-'} />
                   </div>
                   <button
-                    className="secondary-button"
+                    className={cx(adminUi.button, adminUi.buttonRed)}
                     onClick={() => setScanContext({ model: null, trackingCode: '' })}
                     type="button"
                   >
@@ -1155,11 +1362,12 @@ export default function Home() {
                 </article>
               )}
 
-              <form className="scanner-form" onSubmit={submitScan}>
-                <label className="scanner-input-wrap">
+              <form className={adminUi.adminScanForm} onSubmit={submitScan}>
+                <label className={adminUi.adminScanInputWrap}>
                   <span>بارکد</span>
-                  <QrCodeScanner />
+                  <QrCodeScanner className={adminUi.adminScanIcon} />
                   <input
+                    className={adminUi.adminScanInput}
                     ref={scanInputRef}
                     name="barcode"
                     value={scanValue}
@@ -1171,7 +1379,11 @@ export default function Home() {
                     placeholder="اسکن..."
                   />
                 </label>
-                <button className="primary-button" disabled={isScanBusy} type="submit">
+                <button
+                  className={cx(adminUi.button, adminUi.buttonRed)}
+                  disabled={isScanBusy}
+                  type="submit"
+                >
                   <QrCodeScanner />
                   {isScanBusy ? 'در حال ثبت' : 'ثبت اسکن'}
                 </button>
@@ -1179,15 +1391,25 @@ export default function Home() {
 
               {scanResult && (
                 <article
-                  className={`scan-result ${scanResult.action === 'NOT_FOUND' ? 'warn' : ''}`}
+                  className={cx(
+                    adminUi.scanResult,
+                    scanResult.action === 'NOT_FOUND' && adminUi.scanResultWarn,
+                  )}
                 >
-                  <div>
-                    <span>آخرین اسکن</span>
-                    <strong>{scanResult.barcode}</strong>
+                  <div className={adminUi.scanResultHeader}>
+                    <span className={adminUi.scanResultLabel}>آخرین اسکن</span>
+                    <strong className={adminUi.scanResultValue}>{scanResult.barcode}</strong>
                   </div>
-                  <p>{scanResult.message}</p>
+                  <p
+                    className={cx(
+                      adminUi.scanResultMessage,
+                      scanResult.action === 'NOT_FOUND' && adminUi.scanResultWarnMessage,
+                    )}
+                  >
+                    {scanResult.message}
+                  </p>
                   {scanResult.serial && (
-                    <div className="scan-result-grid">
+                    <div className={adminUi.scanResultGrid}>
                       <RecordField label="شماره سریال" value={scanResult.serial.serialNo} />
                       <RecordField label="مدل کالا" value={scanResult.serial.model || '-'} />
                       <RecordField
@@ -1198,7 +1420,7 @@ export default function Home() {
                     </div>
                   )}
                   {!scanResult.serial && scanResult.matchedModel && (
-                    <div className="scan-result-grid">
+                    <div className={adminUi.scanResultGrid}>
                       <RecordField label="مدل کالا" value={scanResult.matchedModel.model} />
                       <RecordField label="شناسه کالا" value={scanResult.matchedModel.productCode} />
                     </div>
@@ -1206,13 +1428,17 @@ export default function Home() {
                 </article>
               )}
 
-              <div className="scanner-secondary-actions">
-                <button className="secondary-button" onClick={openSerialCreate} type="button">
+              <div className={adminUi.scanSecondaryActions}>
+                <button
+                  className={cx(adminUi.button, adminUi.buttonRed)}
+                  onClick={openSerialCreate}
+                  type="button"
+                >
                   <Add />
                   ثبت دستی
                 </button>
                 <button
-                  className="ghost-panel-button"
+                  className={adminUi.ghostPanelButton}
                   onClick={() => setActiveView('serial-list')}
                   type="button"
                 >
@@ -1228,7 +1454,11 @@ export default function Home() {
             title="لیست سریال‌ها"
             subtitle="ردیابی ورود و خروج کالا"
             action={
-              <button className="accent-button" onClick={openSerialCreate} type="button">
+              <button
+                className={cx(adminUi.button, adminUi.buttonRed)}
+                onClick={openSerialCreate}
+                type="button"
+              >
                 <Add />
                 سریال جدید
               </button>
@@ -1244,8 +1474,8 @@ export default function Home() {
               placeholder="نام مشتری یا شماره سند..."
               search={serialSearch}
             />
-            <div className="serial-date-filters">
-              <span className="serial-date-caption">بازه تاریخ</span>
+            <div className={adminUi.serialDateFilters}>
+              <span className={adminUi.serialDateCaption}>بازه تاریخ</span>
               <PersianDateField
                 label="از"
                 onChange={(value) => {
@@ -1265,7 +1495,7 @@ export default function Home() {
                 value={serialDateTo}
               />
               <button
-                className="secondary-button"
+                className={cx(adminUi.button, adminUi.buttonRed, adminUi.serialDateClear)}
                 onClick={() => {
                   setSerialDateFrom('');
                   setSerialDateTo('');
@@ -1276,7 +1506,7 @@ export default function Home() {
                 پاکسازی تاریخ
               </button>
             </div>
-            <div className="table-options">
+            <div className={adminUi.tableOptions}>
               <PageSizeControl
                 onPageSizeChange={(value) => {
                   setSerialPageSize(value);
@@ -1285,8 +1515,8 @@ export default function Home() {
                 pageSize={serialPageSize}
               />
             </div>
-            <div className="table-wrap serial-table-wrap">
-              <table>
+            <div className={adminUi.tableWrap}>
+              <table className={cx(adminUi.table, adminUi.serialTable)}>
                 <thead>
                   <tr>
                     <th>#</th>
@@ -1326,9 +1556,9 @@ export default function Home() {
                         </StatusPill>
                       </td>
                       <td>
-                        <div className="row-actions">
+                        <div className={adminUi.rowActions}>
                           <button
-                            className="mini-button orange"
+                            className={cx(adminUi.miniButton, adminUi.buttonGold)}
                             onClick={() => updateSerial(item)}
                             type="button"
                           >
@@ -1336,7 +1566,7 @@ export default function Home() {
                             ویرایش
                           </button>
                           <button
-                            className="mini-button red"
+                            className={cx(adminUi.miniButton, adminUi.buttonDark)}
                             onClick={() => deleteSerial(item.id)}
                             type="button"
                           >
@@ -1350,15 +1580,17 @@ export default function Home() {
                 </tbody>
               </table>
             </div>
-            <div className="mobile-record-list" aria-label="لیست سریال‌ها">
+            <div className={adminUi.mobileRecordList} aria-label="لیست سریال‌ها">
               {paginatedSerials.length > 0 ? (
                 paginatedSerials.map((item, index) => (
-                  <article className="record-card" key={item.id}>
-                    <div className="record-card-header">
-                      <strong>{item.serialNo}</strong>
-                      <span>#{(serialPageStart + index + 1).toLocaleString('fa-IR')}</span>
+                  <article className={adminUi.recordCard} key={item.id}>
+                    <div className={adminUi.recordCardHeader}>
+                      <strong className={adminUi.recordCardTitle}>{item.serialNo}</strong>
+                      <span className={adminUi.recordCardIndex}>
+                        #{(serialPageStart + index + 1).toLocaleString('fa-IR')}
+                      </span>
                     </div>
-                    <div className="record-card-grid">
+                    <div className={adminUi.recordCardGrid}>
                       <RecordField label="تاریخ" value={item.date} />
                       <RecordField label="شماره سند" value={item.documentNo || '-'} />
                       <RecordField label="نام مشتری" value={item.customerName || '-'} />
@@ -1370,13 +1602,13 @@ export default function Home() {
                       <RecordField label="تاریخ ویرایش" value={item.updatedAt || '-'} />
                       <RecordField label="ویرایش کننده" value={item.updatedBy || '-'} />
                     </div>
-                    <div className="record-card-footer">
+                    <div className={adminUi.recordCardFooter}>
                       <StatusPill tone={item.status === 'ثبت شده' ? 'green' : 'orange'}>
                         {item.status}
                       </StatusPill>
-                      <div className="row-actions">
+                      <div className={adminUi.rowActions}>
                         <button
-                          className="mini-button orange"
+                          className={cx(adminUi.miniButton, adminUi.buttonGold)}
                           onClick={() => updateSerial(item)}
                           type="button"
                         >
@@ -1384,7 +1616,7 @@ export default function Home() {
                           ویرایش
                         </button>
                         <button
-                          className="mini-button red"
+                          className={cx(adminUi.miniButton, adminUi.buttonDark)}
                           onClick={() => deleteSerial(item.id)}
                           type="button"
                         >
@@ -1396,7 +1628,7 @@ export default function Home() {
                   </article>
                 ))
               ) : (
-                <p className="empty-records">رکوردی برای نمایش وجود ندارد.</p>
+                <p className={adminUi.emptyRecords}>رکوردی برای نمایش وجود ندارد.</p>
               )}
             </div>
             <PaginationSummary
@@ -1414,15 +1646,24 @@ export default function Home() {
             title="تعریف کالای جدید"
             subtitle="ثبت مدل و شناسه کالا از طریق فرم سریع"
             action={
-              <button className="secondary-button" onClick={() => setActiveView('product-list')}>
+              <button
+                className={cx(adminUi.button, adminUi.buttonRed)}
+                onClick={() => setActiveView('product-list')}
+              >
                 مشاهده لیست
               </button>
             }
           >
-            <div className="empty-action compact-empty">
-              <Inventory2Outlined />
-              <strong>فرم تعریف کالا در پنجره جداگانه باز می‌شود.</strong>
-              <button className="primary-button" onClick={openProductCreate} type="button">
+            <div className={cx(adminUi.emptyAction, adminUi.compactEmpty)}>
+              <Inventory2Outlined className={adminUi.emptyIcon} />
+              <strong className={adminUi.emptyTitle}>
+                فرم تعریف کالا در پنجره جداگانه باز می‌شود.
+              </strong>
+              <button
+                className={cx(adminUi.button, adminUi.buttonRed)}
+                onClick={openProductCreate}
+                type="button"
+              >
                 <Add />
                 مدل جدید
               </button>
@@ -1435,7 +1676,11 @@ export default function Home() {
             title="لیست مدل کالا"
             subtitle="مدیریت مدل‌ها و شناسه‌های کالا"
             action={
-              <button className="accent-button" onClick={openProductCreate} type="button">
+              <button
+                className={cx(adminUi.button, adminUi.buttonRed)}
+                onClick={openProductCreate}
+                type="button"
+              >
                 <Add />
                 مدل جدید
               </button>
@@ -1449,7 +1694,7 @@ export default function Home() {
               }}
               search={modelSearch}
             />
-            <div className="table-options">
+            <div className={adminUi.tableOptions}>
               <PageSizeControl
                 onPageSizeChange={(value) => {
                   setModelPageSize(value);
@@ -1458,8 +1703,8 @@ export default function Home() {
                 pageSize={modelPageSize}
               />
             </div>
-            <div className="table-wrap">
-              <table>
+            <div className={adminUi.tableWrap}>
+              <table className={adminUi.table}>
                 <thead>
                   <tr>
                     <th>#</th>
@@ -1485,9 +1730,9 @@ export default function Home() {
                         <StatusPill tone="green">ثبت شده</StatusPill>
                       </td>
                       <td>
-                        <div className="row-actions">
+                        <div className={adminUi.rowActions}>
                           <button
-                            className="mini-button orange"
+                            className={cx(adminUi.miniButton, adminUi.buttonGold)}
                             onClick={() => updateModel(item)}
                             type="button"
                           >
@@ -1495,7 +1740,7 @@ export default function Home() {
                             ویرایش
                           </button>
                           <button
-                            className="mini-button red"
+                            className={cx(adminUi.miniButton, adminUi.buttonDark)}
                             onClick={() => deleteModel(item.id)}
                             type="button"
                           >
@@ -1509,25 +1754,27 @@ export default function Home() {
                 </tbody>
               </table>
             </div>
-            <div className="mobile-record-list" aria-label="لیست مدل کالا">
+            <div className={adminUi.mobileRecordList} aria-label="لیست مدل کالا">
               {paginatedModels.length > 0 ? (
                 paginatedModels.map((item, index) => (
-                  <article className="record-card" key={item.id}>
-                    <div className="record-card-header">
-                      <strong>{item.model}</strong>
-                      <span>#{(modelPageStart + index + 1).toLocaleString('fa-IR')}</span>
+                  <article className={adminUi.recordCard} key={item.id}>
+                    <div className={adminUi.recordCardHeader}>
+                      <strong className={adminUi.recordCardTitle}>{item.model}</strong>
+                      <span className={adminUi.recordCardIndex}>
+                        #{(modelPageStart + index + 1).toLocaleString('fa-IR')}
+                      </span>
                     </div>
-                    <div className="record-card-grid">
+                    <div className={adminUi.recordCardGrid}>
                       <RecordField label="شناسه کالا" value={item.productCode} />
                       <RecordField label="شناسه گارانتی" value={item.warrantyCode || '-'} />
                       <RecordField label="تاریخ ایجاد" value={item.createdAt} />
                       <RecordField label="تاریخ ویرایش" value={item.updatedAt} />
                     </div>
-                    <div className="record-card-footer">
+                    <div className={adminUi.recordCardFooter}>
                       <StatusPill tone="green">ثبت شده</StatusPill>
-                      <div className="row-actions">
+                      <div className={adminUi.rowActions}>
                         <button
-                          className="mini-button orange"
+                          className={cx(adminUi.miniButton, adminUi.buttonGold)}
                           onClick={() => updateModel(item)}
                           type="button"
                         >
@@ -1535,7 +1782,7 @@ export default function Home() {
                           ویرایش
                         </button>
                         <button
-                          className="mini-button red"
+                          className={cx(adminUi.miniButton, adminUi.buttonDark)}
                           onClick={() => deleteModel(item.id)}
                           type="button"
                         >
@@ -1547,7 +1794,7 @@ export default function Home() {
                   </article>
                 ))
               ) : (
-                <p className="empty-records">رکوردی برای نمایش وجود ندارد.</p>
+                <p className={adminUi.emptyRecords}>رکوردی برای نمایش وجود ندارد.</p>
               )}
             </div>
             <PaginationSummary
@@ -1569,19 +1816,23 @@ export default function Home() {
                 : 'نمای سریع محل‌های انبار'
             }
             action={
-              <button className="accent-button" onClick={openLocationCreate} type="button">
+              <button
+                className={cx(adminUi.button, adminUi.buttonRed)}
+                onClick={openLocationCreate}
+                type="button"
+              >
                 <Add />
                 محل جدید
               </button>
             }
           >
-            <div className="location-grid">
+            <div className={adminUi.locationGrid}>
               {locations.map((location) => (
-                <article className="location-card" key={location.id}>
-                  <ArchiveOutlined />
-                  <div>
-                    <strong>{location.name}</strong>
-                    <span>
+                <article className={adminUi.locationCard} key={location.id}>
+                  <ArchiveOutlined className={adminUi.locationIcon} />
+                  <div className={adminUi.locationBody}>
+                    <strong className={adminUi.locationTitle}>{location.name}</strong>
+                    <span className={adminUi.locationMeta}>
                       {location.count.toLocaleString('fa-IR')} قلم کالا / {location.code}
                     </span>
                   </div>
@@ -1598,7 +1849,7 @@ export default function Home() {
           subtitle="مدل، شناسه کالا و شناسه گارانتی را وارد کنید."
           onClose={() => setProductDialog(null)}
         >
-          <form className="modal-form" onSubmit={saveProduct}>
+          <form className={adminUi.modalForm} onSubmit={saveProduct}>
             <TextField
               label="مدل"
               value={productDialog.draft.model}
@@ -1646,7 +1897,7 @@ export default function Home() {
           wide
         >
           <form
-            className="modal-form modal-form-wide"
+            className={cx(adminUi.modalForm, adminUi.modalFormWide)}
             onKeyDown={preventModalEnterSubmit}
             onSubmit={saveSerial}
           >
@@ -1738,7 +1989,7 @@ export default function Home() {
           subtitle="نام و کد محل کالا را وارد کنید."
           onClose={() => setLocationDialog(null)}
         >
-          <form className="modal-form" onSubmit={saveLocation}>
+          <form className={adminUi.modalForm} onSubmit={saveLocation}>
             <TextField
               label="نام محل"
               value={locationDialog.draft.name}
@@ -1773,15 +2024,19 @@ export default function Home() {
           subtitle={confirmDialog.message}
           onClose={() => setConfirmDialog(null)}
         >
-          <div className="confirm-actions">
+          <div className={adminUi.confirmActions}>
             <button
-              className="secondary-button"
+              className={cx(adminUi.button, adminUi.buttonRed)}
               onClick={() => setConfirmDialog(null)}
               type="button"
             >
               انصراف
             </button>
-            <button className="danger-button" onClick={confirmDelete} type="button">
+            <button
+              className={cx(adminUi.button, adminUi.buttonDark)}
+              onClick={confirmDelete}
+              type="button"
+            >
               <Delete />
               {confirmDialog.confirmLabel}
             </button>
@@ -1806,19 +2061,21 @@ function Modal({
   wide?: boolean;
 }) {
   return (
-    <div className="modal-backdrop" role="presentation">
+    <div className={adminUi.modalBackdrop} role="presentation">
       <section
         aria-labelledby="modal-title"
         aria-modal="true"
-        className={wide ? 'modal-card wide' : 'modal-card'}
+        className={cx(adminUi.modalCard, wide && adminUi.modalCardWide)}
         role="dialog"
       >
-        <div className="modal-heading">
+        <div className={adminUi.modalHeading}>
           <div>
-            <h2 id="modal-title">{title}</h2>
-            <p>{subtitle}</p>
+            <h2 className={adminUi.modalTitle} id="modal-title">
+              {title}
+            </h2>
+            <p className={adminUi.modalSubtitle}>{subtitle}</p>
           </div>
-          <button className="modal-close" onClick={onClose} type="button">
+          <button className={adminUi.modalClose} onClick={onClose} type="button">
             ×
           </button>
         </div>
@@ -1830,11 +2087,11 @@ function Modal({
 
 function ModalActions({ confirmLabel, onCancel }: { confirmLabel: string; onCancel: () => void }) {
   return (
-    <div className="modal-actions">
-      <button className="secondary-button" onClick={onCancel} type="button">
+    <div className={adminUi.modalActions}>
+      <button className={cx(adminUi.button, adminUi.buttonRed)} onClick={onCancel} type="button">
         انصراف
       </button>
-      <button className="primary-button" type="submit">
+      <button className={cx(adminUi.button, adminUi.buttonRed)} type="submit">
         <Add />
         {confirmLabel}
       </button>
@@ -1877,44 +2134,61 @@ function PersianDateField({
   };
 
   return (
-    <label className="field date-field">
+    <label className={adminUi.dateField}>
       <span>{label}</span>
       <button
-        className={`${isOpen ? 'date-trigger active' : 'date-trigger'}${value ? '' : ' empty'}`}
+        className={cx(
+          adminUi.dateTrigger,
+          isOpen && adminUi.dateTriggerActive,
+          !value && adminUi.dateTriggerEmpty,
+        )}
         onClick={() => setIsOpen((current) => !current)}
         type="button"
       >
-        <CalendarMonthOutlined />
+        <CalendarMonthOutlined className={adminUi.dateIcon} />
         <span>{value || placeholder || today}</span>
       </button>
       {isOpen && (
-        <div className="persian-calendar">
-          <div className="calendar-header">
-            <button onClick={() => changeMonth(-1)} type="button">
+        <div className={adminUi.calendar}>
+          <div className={adminUi.calendarHeader}>
+            <button
+              className={adminUi.calendarNavButton}
+              onClick={() => changeMonth(-1)}
+              type="button"
+            >
               ‹
             </button>
-            <strong>
+            <strong className={adminUi.calendarTitle}>
               {persianMonthNames[visibleMonth.month - 1]} {visibleMonth.year}
             </strong>
-            <button onClick={() => changeMonth(1)} type="button">
+            <button
+              className={adminUi.calendarNavButton}
+              onClick={() => changeMonth(1)}
+              type="button"
+            >
               ›
             </button>
           </div>
-          <div className="calendar-weekdays">
+          <div className={adminUi.calendarGrid}>
             {persianWeekDays.map((day) => (
-              <span key={day}>{day}</span>
+              <span className={adminUi.calendarWeekday} key={day}>
+                {day}
+              </span>
             ))}
           </div>
-          <div className="calendar-days">
+          <div className={adminUi.calendarGrid}>
             {Array.from({ length: leadingCells }).map((_, index) => (
-              <span className="calendar-empty" key={`empty-${index}`} />
+              <span className={adminUi.calendarEmpty} key={`empty-${index}`} />
             ))}
             {monthDates.map(({ parts }) => {
               const dateValue = formatPersianDateParts(parts);
 
               return (
                 <button
-                  className={dateValue === selectedValue ? 'selected' : ''}
+                  className={cx(
+                    adminUi.calendarDay,
+                    dateValue === selectedValue && adminUi.calendarDaySelected,
+                  )}
                   key={dateValue}
                   onClick={() => {
                     onChange(dateValue);
@@ -1928,7 +2202,7 @@ function PersianDateField({
             })}
           </div>
           <button
-            className="calendar-today"
+            className={adminUi.calendarToday}
             onClick={() => {
               const now = getPersianDateParts(new Date());
               setVisibleMonth({ year: now.year, month: now.month });
@@ -1961,9 +2235,10 @@ function TextField({
   wide?: boolean;
 }) {
   return (
-    <label className={wide ? 'field wide' : 'field'}>
+    <label className={cx(adminUi.field, wide && adminUi.fieldWide)}>
       <span>{label}</span>
       <input
+        className={adminUi.fieldInput}
         ref={inputRef}
         value={value}
         onChange={(event) => onChange(event.target.value)}
@@ -1985,11 +2260,11 @@ function ContentPanel({
   children: ReactNode;
 }) {
   return (
-    <section className="content-panel">
-      <div className="panel-heading">
+    <section className={adminUi.contentPanel}>
+      <div className={adminUi.panelHeading}>
         <div>
-          <h1>{title}</h1>
-          <p>{subtitle}</p>
+          <h1 className={adminUi.panelTitle}>{title}</h1>
+          <p className={adminUi.panelSubtitle}>{subtitle}</p>
         </div>
         {action}
       </div>
@@ -2000,9 +2275,9 @@ function ContentPanel({
 
 function StatCard({ label, value, tone }: { label: string; value: number; tone: string }) {
   return (
-    <article className={`stat-card ${tone}`}>
-      <span>{label}</span>
-      <strong>{value.toLocaleString('fa-IR')}</strong>
+    <article className={adminUi.statCard} data-tone={tone}>
+      <span className={adminUi.statLabel}>{label}</span>
+      <strong className={adminUi.statValue}>{value.toLocaleString('fa-IR')}</strong>
     </article>
   );
 }
@@ -2021,20 +2296,28 @@ function Toolbar({
   placeholder?: string;
 }) {
   return (
-    <div className="table-toolbar">
-      <div className="export-actions">
-        <button className="success-button" type="button">
+    <div className="bg-green-500 mb-4 flex items-start justify-between gap-4 flex-col md:flex-row md:items-start">
+      <div className="flex gap-2 max-[680px]:w-full">
+        <button
+          className={cx(adminUi.button, adminUi.buttonRed, 'max-[680px]:w-full')}
+          type="button"
+        >
           <Upload />
           کپی
         </button>
-        <button className="success-button" onClick={onExport} type="button">
+        <button
+          className={cx(adminUi.button, adminUi.buttonRed, 'max-[680px]:w-full')}
+          onClick={onExport}
+          type="button"
+        >
           <Download />
           {exportLabel}
         </button>
       </div>
-      <label className="search-box">
-        <Search />
+      <label className={adminUi.searchBox}>
+        <Search className={adminUi.searchIcon} />
         <input
+          className={adminUi.searchInput}
           value={search}
           onChange={(event) => onSearch(event.target.value)}
           placeholder={placeholder}
@@ -2045,14 +2328,23 @@ function Toolbar({
 }
 
 function StatusPill({ children, tone }: { children: ReactNode; tone: 'green' | 'orange' }) {
-  return <span className={`status-pill ${tone}`}>{children}</span>;
+  return (
+    <span
+      className={cx(
+        adminUi.statusPill,
+        tone === 'green' ? adminUi.statusGreen : adminUi.statusOrange,
+      )}
+    >
+      {children}
+    </span>
+  );
 }
 
 function RecordField({ label, value }: { label: string; value: ReactNode }) {
   return (
-    <div className="record-field">
-      <span>{label}</span>
-      <strong>{value}</strong>
+    <div className={adminUi.recordField}>
+      <span className={adminUi.recordFieldLabel}>{label}</span>
+      <strong className={adminUi.recordFieldValue}>{value}</strong>
     </div>
   );
 }
@@ -2065,9 +2357,13 @@ function PageSizeControl({
   pageSize: number;
 }) {
   return (
-    <label className="page-size-control">
-      <span>ردیف در هر صفحه</span>
-      <select value={pageSize} onChange={(event) => onPageSizeChange(Number(event.target.value))}>
+    <label className={adminUi.pageSizeControl}>
+      <span className={adminUi.pageSizeLabel}>ردیف در هر صفحه</span>
+      <select
+        className={adminUi.pageSizeSelect}
+        value={pageSize}
+        onChange={(event) => onPageSizeChange(Number(event.target.value))}
+      >
         {pageSizeOptions.map((option) => (
           <option key={option} value={option}>
             {option.toLocaleString('fa-IR')}
@@ -2119,14 +2415,15 @@ function PaginationSummary({
   const paginationItems = getPaginationItems(page, totalPages);
 
   return (
-    <div className="pagination-row">
-      <span className="pagination-status">
+    <div className={adminUi.paginationRow}>
+      <span className={adminUi.paginationStatus}>
         نمایش {start.toLocaleString('fa-IR')} تا {end.toLocaleString('fa-IR')} از{' '}
         {filteredTotal.toLocaleString('fa-IR')} ردیف
         {hasFiltered ? ` (کل: ${total.toLocaleString('fa-IR')})` : ''}
       </span>
-      <div className="pagination-controls">
+      <div className={adminUi.paginationControls}>
         <button
+          className={adminUi.paginationButton}
           aria-label="صفحه بعدی"
           disabled={page >= totalPages}
           onClick={() => onPageChange(page + 1)}
@@ -2136,13 +2433,16 @@ function PaginationSummary({
         </button>
         {paginationItems.map((item, index) =>
           item === 'ellipsis' ? (
-            <span className="pagination-ellipsis" key={`ellipsis-${index}`}>
+            <span className={adminUi.paginationEllipsis} key={`ellipsis-${index}`}>
               ...
             </span>
           ) : (
             <button
               aria-current={item === page ? 'page' : undefined}
-              className={item === page ? 'active-page' : 'page-number'}
+              className={cx(
+                adminUi.paginationButton,
+                item === page ? adminUi.activePage : adminUi.pageNumber,
+              )}
               key={item}
               onClick={() => onPageChange(item)}
               type="button"
@@ -2152,6 +2452,7 @@ function PaginationSummary({
           ),
         )}
         <button
+          className={adminUi.paginationButton}
           aria-label="صفحه قبلی"
           disabled={page <= 1}
           onClick={() => onPageChange(page - 1)}

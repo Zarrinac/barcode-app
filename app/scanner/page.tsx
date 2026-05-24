@@ -72,6 +72,88 @@ type LoginResponse = {
 const scannerStorageKey = 'barcode-app-scanner-session';
 const scannerSuccessToastMs = 2800;
 
+function cx(...classes: Array<string | false | null | undefined>) {
+  return classes.filter(Boolean).join(' ');
+}
+
+const scannerUi = {
+  authScreen:
+    'grid min-h-dvh content-center gap-[26px] bg-gradient-to-b from-dcode-bg to-[#151b27] px-4 py-[18px] pb-[22px] font-sans text-dcode-ink max-[380px]:px-3 max-[380px]:py-3.5 max-[380px]:pb-[18px]',
+  authCard:
+    'mx-auto grid w-[min(100%,430px)] gap-3.5 rounded-[24px] border border-dcode-bg/10 bg-white/95 p-[26px_18px_18px] shadow-[0_18px_42px_rgb(15_35_52_/_14%)] max-[380px]:rounded-[20px] max-[380px]:p-[22px_14px_14px]',
+  logo: 'mx-auto mb-4 h-auto w-[min(245px,68vw)] max-[380px]:mb-3 max-[380px]:w-[min(205px,64vw)]',
+  loginField:
+    'grid min-h-[58px] grid-cols-[42px_1fr] items-center gap-2 rounded-2xl border border-dcode-bg/12 bg-slate-50 px-3 text-dcode-red focus-within:border-dcode-red focus-within:shadow-[0_0_0_4px_rgb(255_43_61_/_11%)]',
+  loginIcon: '!size-6 text-dcode-red',
+  loginInput:
+    'min-h-[54px] w-full border-0 bg-transparent text-right text-[21px] font-[780] text-dcode-bg outline-none placeholder:text-slate-500 max-[380px]:text-[19px]',
+  loginActions: 'mt-2 grid grid-cols-2 gap-2.5',
+  documentCard:
+    'mx-auto grid w-[min(100%,430px)] gap-3 rounded-[24px] border border-dcode-bg/10 bg-white/95 p-[22px_16px_16px] shadow-[0_18px_42px_rgb(15_35_52_/_14%)] max-[380px]:rounded-[20px]',
+  documentTitle:
+    'm-0 mb-1 text-center text-[28px] font-black leading-tight text-dcode-bg max-[380px]:text-[25px]',
+  documentInput:
+    'min-h-[66px] w-full rounded-2xl border border-dcode-bg/12 bg-white px-4 text-right text-[21px] font-[760] text-dcode-bg outline-none placeholder:text-slate-500 focus:border-dcode-red focus:shadow-[0_0_0_4px_rgb(255_43_61_/_11%)] max-[380px]:text-[19px]',
+  readonlyInput:
+    'cursor-default bg-slate-50 text-slate-500 [direction:ltr] focus:border-dcode-bg/12 focus:shadow-none',
+  documentActions: 'mt-1 grid grid-cols-[1.2fr_0.8fr] gap-2.5',
+  button:
+    'inline-flex min-h-[50px] items-center justify-center gap-2.5 rounded-[14px] border-0 px-[18px] text-lg font-[820] text-white shadow-[0_10px_24px_rgb(15_35_52_/_12%)] disabled:cursor-wait disabled:opacity-50',
+  redButton: 'bg-gradient-to-br from-dcode-red to-[#c70f20]',
+  darkButton: 'bg-gradient-to-br from-[#111111] to-dcode-bg',
+  offlinePill:
+    'mt-[18px] justify-self-center rounded-full bg-[#05090a] px-5 py-2.5 text-center text-[15px] font-[760] text-white shadow-[0_12px_28px_rgb(0_0_0_/_18%)]',
+  collectScreen:
+    'min-h-dvh bg-dcode-light px-3 pt-2.5 pb-3 font-sans text-dcode-ink max-[380px]:px-2',
+  collectHeader:
+    'grid min-h-[58px] grid-cols-[44px_1fr_44px] items-center rounded-[18px] bg-white px-2 shadow-[0_8px_24px_rgb(15_35_52_/_8%)]',
+  iconButton: 'grid place-items-center border-0 bg-transparent text-[#252229]',
+  headerIcon: '!size-7',
+  collectTitle: 'm-0 text-center text-[25px] font-black max-[380px]:text-[23px]',
+  summaryGrid: 'my-2.5 grid grid-cols-[0.75fr_1.25fr] gap-2',
+  summaryCard:
+    'grid min-w-0 gap-0.5 rounded-[14px] border border-dcode-bg/12 bg-white px-3 py-[9px] shadow-[0_8px_22px_rgb(15_35_52_/_6%)]',
+  summaryLabel: 'text-[12px] font-extrabold text-slate-500',
+  summaryValue:
+    'overflow-hidden text-ellipsis whitespace-nowrap text-base font-[850] text-dcode-bg max-[380px]:text-sm',
+  scanFields: 'grid gap-2',
+  scanField:
+    'group relative grid min-h-[74px] gap-1 rounded-2xl border border-dcode-bg/12 bg-white px-3 pt-2.5 pb-2 shadow-[0_8px_22px_rgb(15_35_52_/_6%)] focus-within:border-dcode-red focus-within:shadow-[0_0_0_3px_rgb(255_43_61_/_11%),0_10px_24px_rgb(15_35_52_/_8%)]',
+  scanLabel: 'text-right text-[13px] font-[850] text-slate-500 group-focus-within:text-dcode-red',
+  scanInputRow: 'grid min-h-9 grid-cols-[30px_1fr] items-center gap-3',
+  scanIcon: '!size-[22px] text-dcode-red',
+  scanInput:
+    'min-w-0 w-full border-0 bg-transparent text-right text-[21px] font-[760] leading-tight text-dcode-bg outline-none max-[380px]:text-[19px]',
+  actionRow: 'mt-2.5 grid grid-cols-3 gap-2',
+  actionButton:
+    'inline-flex min-h-12 w-full items-center justify-center gap-2.5 whitespace-nowrap rounded-[14px] border-0 px-2 text-base font-[820] text-white shadow-[0_3px_7px_rgb(0_0_0_/_18%)] disabled:opacity-50 max-[380px]:text-sm',
+  actionIcon: '!size-[21px]',
+  acPartRow:
+    'mt-4 flex min-h-[46px] items-center justify-between gap-2.5 px-1 py-0.5 text-base font-black text-dcode-bg',
+  acPartGroup: 'flex items-center gap-2',
+  acPartButton:
+    'inline-flex min-h-10 min-w-[78px] items-center justify-center rounded-full border border-dcode-line bg-white px-4 text-[15px] font-black text-dcode-bg shadow-none',
+  acPartButtonActive: 'border-dcode-red bg-dcode-red text-white',
+  countRow: 'flex min-h-[42px] items-center justify-between gap-2.5 px-1 text-base font-extrabold',
+  countText: 'overflow-hidden text-ellipsis whitespace-nowrap text-dcode-bg',
+  recordList:
+    'grid min-h-[150px] max-h-[calc(100dvh-438px)] content-start overflow-y-auto rounded-2xl bg-white p-2 shadow-[inset_0_0_0_1px_rgb(21_49_66_/_10%)]',
+  recordCard:
+    'grid min-h-[74px] grid-cols-[32px_1fr_48px] items-center gap-2 rounded-[14px] bg-slate-50 p-[8px_10px] text-lg text-dcode-red [&+&]:mt-2.5',
+  recordIndex: 'font-[850] text-dcode-bg',
+  recordBody: 'grid min-w-0 gap-0.5',
+  recordStrong: '[overflow-wrap:anywhere] text-[19px] font-black leading-tight',
+  recordSmall: '[overflow-wrap:anywhere] text-[17px] font-[650] leading-tight',
+  recordDelete:
+    'grid min-h-11 w-full place-items-center rounded-xl border-0 bg-white text-dcode-red',
+  recordDeleteIcon: '!size-[25px]',
+  statusLine: 'mt-[7px] min-h-[22px] text-center text-sm font-bold text-slate-700',
+  toast:
+    'fixed top-3.5 right-3 left-3 z-80 flex min-h-12 items-center justify-start rounded-[10px] border px-4 py-2.5 text-right text-base font-[850] shadow-[0_12px_28px_rgb(15_35_52_/_10%)] max-[380px]:top-2.5 max-[380px]:right-2.5 max-[380px]:left-2.5 max-[380px]:text-sm',
+  toastSuccess: 'border-dcode-red/25 bg-[#fff1f3] text-[#c70f20]',
+  toastError: 'border-[#ef6254]/25 bg-[#fff0ee] text-[#b42318]',
+};
+
 const persianDatePartsFormatter = new Intl.DateTimeFormat('en-US-u-ca-persian', {
   day: '2-digit',
   month: '2-digit',
@@ -485,19 +567,20 @@ export default function ScannerPage() {
 
   if (step === 'login') {
     return (
-      <main className="scanner-app scanner-login-screen">
-        <form className="scanner-login-card" onSubmit={login}>
+      <main className={scannerUi.authScreen}>
+        <form className={scannerUi.authCard} onSubmit={login}>
           <Image
-            className="scanner-logo"
+            className={scannerUi.logo}
             src="/dcode-logo-SVG.svg"
             alt="D'CODE"
             width={320}
             height={106}
             priority
           />
-          <label>
-            <Person />
+          <label className={scannerUi.loginField}>
+            <Person className={scannerUi.loginIcon} />
             <input
+              className={scannerUi.loginInput}
               name="username"
               value={loginForm.username}
               onChange={(event) =>
@@ -507,9 +590,10 @@ export default function ScannerPage() {
               placeholder="نام کاربری"
             />
           </label>
-          <label>
-            <Key />
+          <label className={scannerUi.loginField}>
+            <Key className={scannerUi.loginIcon} />
             <input
+              className={scannerUi.loginInput}
               name="password"
               value={loginForm.password}
               onChange={(event) =>
@@ -520,28 +604,48 @@ export default function ScannerPage() {
               type="password"
             />
           </label>
-          <div className="scanner-login-actions">
-            <button className="scanner-danger-button" type="button">
+          <div className={scannerUi.loginActions}>
+            <button className={cx(scannerUi.button, scannerUi.darkButton)} type="button">
               انصراف
             </button>
-            <button className="scanner-yellow-button" disabled={isLoggingIn} type="submit">
+            <button
+              className={cx(scannerUi.button, scannerUi.redButton)}
+              disabled={isLoggingIn}
+              type="submit"
+            >
               {isLoggingIn ? 'در حال ورود...' : 'ورود'}
             </button>
           </div>
         </form>
-        <span className="scanner-offline-pill">{statusMessage}</span>
-        {toast && <div className={`scanner-toast ${toast.tone}`}>{toast.message}</div>}
+        <span className={scannerUi.offlinePill}>{statusMessage}</span>
+        {toast && (
+          <div
+            className={cx(
+              scannerUi.toast,
+              toast.tone === 'success' ? scannerUi.toastSuccess : scannerUi.toastError,
+            )}
+          >
+            {toast.message}
+          </div>
+        )}
       </main>
     );
   }
 
   if (step === 'document') {
     return (
-      <main className="scanner-app scanner-document-screen">
-        <form className="scanner-document-card" onSubmit={startCollection}>
-          <h1>اطلاعات مشتری</h1>
-          <input aria-label="تاریخ امروز" value={date} readOnly tabIndex={-1} />
+      <main className={scannerUi.authScreen}>
+        <form className={scannerUi.documentCard} onSubmit={startCollection}>
+          <h1 className={scannerUi.documentTitle}>اطلاعات مشتری</h1>
           <input
+            className={cx(scannerUi.documentInput, scannerUi.readonlyInput)}
+            aria-label="تاریخ امروز"
+            value={date}
+            readOnly
+            tabIndex={-1}
+          />
+          <input
+            className={scannerUi.documentInput}
             ref={documentInputRef}
             value={documentNo}
             onChange={(event) => setDocumentNo(normalizeNumberInput(event.target.value))}
@@ -550,16 +654,21 @@ export default function ScannerPage() {
             placeholder="شماره سند"
           />
           <input
+            className={scannerUi.documentInput}
             value={customerName}
             onChange={(event) => setCustomerName(event.target.value)}
             placeholder="نام مشتری"
           />
-          <div className="scanner-document-actions">
-            <button className="scanner-light-button" onClick={startCollection} type="button">
+          <div className={scannerUi.documentActions}>
+            <button
+              className={cx(scannerUi.button, scannerUi.redButton)}
+              onClick={startCollection}
+              type="button"
+            >
               جمع آوری بارکد
             </button>
             <button
-              className="scanner-danger-button compact"
+              className={cx(scannerUi.button, scannerUi.darkButton)}
               onClick={() => goToStep('login')}
               type="button"
             >
@@ -567,40 +676,55 @@ export default function ScannerPage() {
             </button>
           </div>
         </form>
-        {toast && <div className={`scanner-toast ${toast.tone}`}>{toast.message}</div>}
+        {toast && (
+          <div
+            className={cx(
+              scannerUi.toast,
+              toast.tone === 'success' ? scannerUi.toastSuccess : scannerUi.toastError,
+            )}
+          >
+            {toast.message}
+          </div>
+        )}
       </main>
     );
   }
 
   return (
-    <main className="scanner-app scanner-collect-screen">
-      <header className="scanner-collect-header">
-        <button aria-label="منو" type="button">
-          <Menu />
+    <main className={scannerUi.collectScreen}>
+      <header className={scannerUi.collectHeader}>
+        <button className={scannerUi.iconButton} aria-label="منو" type="button">
+          <Menu className={scannerUi.headerIcon} />
         </button>
-        <h1>اسکن کالا</h1>
-        <button aria-label="خانه" onClick={() => goToStep('document')} type="button">
-          <Home />
+        <h1 className={scannerUi.collectTitle}>اسکن کالا</h1>
+        <button
+          className={scannerUi.iconButton}
+          aria-label="خانه"
+          onClick={() => goToStep('document')}
+          type="button"
+        >
+          <Home className={scannerUi.headerIcon} />
         </button>
       </header>
 
-      <section className="scanner-session-summary">
-        <div>
-          <span>سند</span>
-          <strong>{documentNo}</strong>
+      <section className={scannerUi.summaryGrid}>
+        <div className={scannerUi.summaryCard}>
+          <span className={scannerUi.summaryLabel}>سند</span>
+          <strong className={scannerUi.summaryValue}>{documentNo}</strong>
         </div>
-        <div>
-          <span>مشتری</span>
-          <strong>{customerName}</strong>
+        <div className={scannerUi.summaryCard}>
+          <span className={scannerUi.summaryLabel}>مشتری</span>
+          <strong className={scannerUi.summaryValue}>{customerName}</strong>
         </div>
       </section>
 
-      <section className="scanner-scan-fields">
-        <label>
-          <span>شناسه کالا</span>
-          <div>
-            <QrCodeScanner />
+      <section className={scannerUi.scanFields}>
+        <label className={scannerUi.scanField}>
+          <span className={scannerUi.scanLabel}>شناسه کالا</span>
+          <div className={scannerUi.scanInputRow}>
+            <QrCodeScanner className={scannerUi.scanIcon} />
             <input
+              className={scannerUi.scanInput}
               ref={productInputRef}
               value={productCode}
               onChange={(event) => setProductCode(normalizeNumberInput(event.target.value))}
@@ -614,11 +738,12 @@ export default function ScannerPage() {
             />
           </div>
         </label>
-        <label>
-          <span>کد رهگیری</span>
-          <div>
-            <QrCodeScanner />
+        <label className={scannerUi.scanField}>
+          <span className={scannerUi.scanLabel}>کد رهگیری</span>
+          <div className={scannerUi.scanInputRow}>
+            <QrCodeScanner className={scannerUi.scanIcon} />
             <input
+              className={scannerUi.scanInput}
               ref={trackingInputRef}
               value={trackingCode}
               onChange={(event) =>
@@ -636,11 +761,12 @@ export default function ScannerPage() {
             />
           </div>
         </label>
-        <label>
-          <span>شماره سریال</span>
-          <div>
-            <QrCodeScanner />
+        <label className={scannerUi.scanField}>
+          <span className={scannerUi.scanLabel}>شماره سریال</span>
+          <div className={scannerUi.scanInputRow}>
+            <QrCodeScanner className={scannerUi.scanIcon} />
             <input
+              className={scannerUi.scanInput}
               ref={serialInputRef}
               value={serialNo}
               onChange={(event) => setSerialNo(normalizeScan(event.target.value))}
@@ -653,42 +779,45 @@ export default function ScannerPage() {
         </label>
       </section>
 
-      <section className="scanner-action-row">
+      <section className={scannerUi.actionRow}>
         <button
-          className="scanner-blue-button"
+          className={cx(scannerUi.actionButton, 'bg-dcode-bg')}
           disabled={rows.length === 0 || isSending || isCompleting}
           onClick={sendRows}
           type="button"
         >
-          <Send />
+          <Send className={scannerUi.actionIcon} />
           {isSending ? 'ارسال...' : 'ارسال'}
         </button>
         <button
-          className="scanner-pink-button"
+          className={cx(scannerUi.actionButton, 'bg-dcode-red')}
           disabled={rows.length === 0 || isCompleting}
           onClick={saveRows}
           type="button"
         >
-          <Save />
+          <Save className={scannerUi.actionIcon} />
           ذخیره
         </button>
         <button
-          className="scanner-green-button"
+          className={cx(scannerUi.actionButton, 'bg-slate-800')}
           disabled={rows.length === 0 || isCompleting}
           onClick={clearRows}
           type="button"
         >
-          <Close />
+          <Close className={scannerUi.actionIcon} />
           پاکسازی
         </button>
       </section>
 
-      <section className="scanner-ac-part-row">
+      <section className={scannerUi.acPartRow}>
         <strong>تعداد: {rows.length.toLocaleString('fa-IR')}</strong>
-        <div aria-label="نوع قطعه کولر">
+        <div className={scannerUi.acPartGroup} aria-label="نوع قطعه کولر">
           <button
             aria-pressed={acPart === 'panel'}
-            className={acPart === 'panel' ? 'active' : ''}
+            className={cx(
+              scannerUi.acPartButton,
+              acPart === 'panel' && scannerUi.acPartButtonActive,
+            )}
             onClick={() => selectAcPart('panel')}
             type="button"
           >
@@ -696,7 +825,10 @@ export default function ScannerPage() {
           </button>
           <button
             aria-pressed={acPart === 'motor'}
-            className={acPart === 'motor' ? 'active' : ''}
+            className={cx(
+              scannerUi.acPartButton,
+              acPart === 'motor' && scannerUi.acPartButtonActive,
+            )}
             onClick={() => selectAcPart('motor')}
             type="button"
           >
@@ -705,31 +837,41 @@ export default function ScannerPage() {
         </div>
       </section>
 
-      <section className="scanner-count-row">
-        <span>{currentModel?.model || 'مدل نامشخص'}</span>
+      <section className={scannerUi.countRow}>
+        <span className={scannerUi.countText}>{currentModel?.model || 'مدل نامشخص'}</span>
       </section>
 
-      <section className="scanner-record-list">
+      <section className={scannerUi.recordList}>
         {rows.map((row, index) => (
-          <article className="scanner-record-card" key={row.id}>
-            <span>{rows.length - index}</span>
-            <div>
-              <strong>{row.productCode}</strong>
-              <small>{row.trackingCode}</small>
-              <small>{row.serialNo}</small>
+          <article className={scannerUi.recordCard} key={row.id}>
+            <span className={scannerUi.recordIndex}>{rows.length - index}</span>
+            <div className={scannerUi.recordBody}>
+              <strong className={scannerUi.recordStrong}>{row.productCode}</strong>
+              <small className={scannerUi.recordSmall}>{row.trackingCode}</small>
+              <small className={scannerUi.recordSmall}>{row.serialNo}</small>
             </div>
             <button
+              className={scannerUi.recordDelete}
               aria-label="حذف"
               onClick={() => setRows((current) => current.filter((item) => item.id !== row.id))}
               type="button"
             >
-              <Delete />
+              <Delete className={scannerUi.recordDeleteIcon} />
             </button>
           </article>
         ))}
       </section>
-      <p className="scanner-status-line">{statusMessage}</p>
-      {toast && <div className={`scanner-toast ${toast.tone}`}>{toast.message}</div>}
+      <p className={scannerUi.statusLine}>{statusMessage}</p>
+      {toast && (
+        <div
+          className={cx(
+            scannerUi.toast,
+            toast.tone === 'success' ? scannerUi.toastSuccess : scannerUi.toastError,
+          )}
+        >
+          {toast.message}
+        </div>
+      )}
     </main>
   );
 }
