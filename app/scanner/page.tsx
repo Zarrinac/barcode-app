@@ -489,10 +489,10 @@ export default function ScannerPage() {
         <form className="scanner-login-card" onSubmit={login}>
           <Image
             className="scanner-logo"
-            src="/hisense-logo-svg.svg"
-            alt="Hisense"
+            src="/dcode-logo-SVG.svg"
+            alt="D'CODE"
             width={320}
-            height={52}
+            height={106}
             priority
           />
           <label>

@@ -17,6 +17,7 @@ import {
   TableRowsOutlined,
   Upload,
 } from '@mui/icons-material';
+import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { ReactNode, Ref } from 'react';
 
@@ -1008,15 +1009,14 @@ export default function Home() {
       <main className="login-shell" dir="rtl">
         <section className="login-card" aria-label="ورود به برنامه انبار">
           <div className="login-visual" aria-hidden="true">
-            <span className="shape shape-one" />
-            <span className="shape shape-two" />
-            <span className="shape shape-three" />
-            <div className="monitor">
-              <div className="monitor-screen">
-                <BadgeOutlined />
-              </div>
-              <div className="monitor-base" />
-            </div>
+            <Image
+              className="login-brand-logo"
+              src="/favicon/source/dcode-wordmark-light.png"
+              alt=""
+              width={736}
+              height={185}
+              priority
+            />
           </div>
 
           <form className="login-form" onSubmit={login}>
@@ -1060,10 +1060,16 @@ export default function Home() {
       <aside className="sidebar" aria-label="منوی اصلی">
         <div className="brand">
           <div>
-            <strong>زرین نمای کاسپین</strong>
+            <strong>D&apos;CODE</strong>
             <span>سامانه انبار و سریال</span>
           </div>
-          <QrCodeScanner />
+          <Image
+            className="brand-logo"
+            src="/favicon/source/dcode-wordmark-light.png"
+            alt="D'CODE"
+            width={147}
+            height={37}
+          />
         </div>
 
         <nav className="nav-list">

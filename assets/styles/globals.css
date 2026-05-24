@@ -1,5 +1,14 @@
 @import 'tailwindcss';
 
+@theme {
+  --color-dcode-bg: #0c121e;
+  --color-dcode-red: #ff2b3d;
+  --color-dcode-ink: #111111;
+  --color-dcode-light: #f5f7fa;
+  --color-dcode-line: #e5e7eb;
+  --font-sans: 'IRANSansXV', Arial, Helvetica, sans-serif;
+}
+
 @font-face {
   font-family: 'IRANSansXV';
   src:
@@ -12,25 +21,25 @@
 }
 
 :root {
-  --background: #eef3f6;
+  --background: #f5f7fa;
   --surface: #ffffff;
-  --surface-soft: #f8faf8;
-  --surface-muted: #e8eef2;
-  --text: #172633;
-  --muted: #657585;
-  --line: #dbe4e8;
-  --brand: #153142;
-  --brand-dark: #091721;
-  --brand-soft: #203e52;
-  --teal: #0ea59a;
-  --teal-dark: #087b75;
-  --mint: #4bbf8b;
-  --rose: #e34868;
-  --amber: #f59f24;
-  --coral: #ef6254;
-  --indigo: #496edb;
-  --shadow: 0 18px 42px rgb(15 35 52 / 12%);
-  --shadow-soft: 0 10px 26px rgb(15 35 52 / 8%);
+  --surface-soft: #f8fafc;
+  --surface-muted: #eef1f5;
+  --text: #111111;
+  --muted: #5f6673;
+  --line: #e1e5eb;
+  --brand: #0c121e;
+  --brand-dark: #05070c;
+  --brand-soft: #191f2b;
+  --teal: #ff2b3d;
+  --teal-dark: #c70f20;
+  --mint: #ff5c6a;
+  --rose: #ff2b3d;
+  --amber: #d6a100;
+  --coral: #ff2b3d;
+  --indigo: #0c121e;
+  --shadow: 0 18px 42px rgb(12 18 30 / 10%);
+  --shadow-soft: 0 10px 26px rgb(12 18 30 / 7%);
 }
 
 * {
@@ -46,9 +55,7 @@ html {
 body {
   min-height: 100vh;
   margin: 0;
-  background:
-    linear-gradient(135deg, rgb(14 165 154 / 7%), transparent 28%),
-    linear-gradient(315deg, rgb(245 159 36 / 8%), transparent 32%), var(--background);
+  background: var(--background);
   color: var(--text);
   font-family: 'IRANSansXV', Arial, Helvetica, sans-serif;
   overflow-x: hidden;
@@ -2753,4 +2760,274 @@ tbody tr:hover {
   .scanner-document-card h1 {
     font-size: 25px;
   }
+}
+
+/* D'CODE brand pass: keep complex layout CSS, drive color through brand tokens. */
+.login-shell {
+  background: linear-gradient(
+    135deg,
+    var(--brand) 0%,
+    #111111 44%,
+    var(--background) 44.2%,
+    #ffffff 100%
+  );
+}
+
+.login-card,
+.content-panel,
+.stat-card,
+.record-card,
+.modal-card,
+.location-card {
+  border-color: rgb(12 18 30 / 10%);
+  background: #ffffff;
+}
+
+.login-visual {
+  background: var(--brand);
+}
+
+.login-visual::before,
+.monitor,
+.shape {
+  display: none;
+}
+
+.login-visual::after {
+  content: "D'CODE";
+  right: 34px;
+  bottom: 28px;
+  color: rgb(245 247 250 / 10%);
+}
+
+.login-brand-logo {
+  position: relative;
+  z-index: 1;
+  width: min(340px, 76%);
+  height: auto;
+}
+
+.login-form::before {
+  color: var(--brand);
+}
+
+.login-form::after,
+.brand span,
+.panel-heading p,
+.field,
+.search-box,
+.record-field span,
+.scanner-session-summary span {
+  color: var(--muted);
+}
+
+.sidebar {
+  border-color: rgb(255 255 255 / 10%);
+  background: linear-gradient(180deg, #151b27, var(--brand-dark));
+}
+
+.brand {
+  align-items: center;
+}
+
+.brand-logo {
+  width: 112px;
+  height: auto;
+}
+
+.nav-item:hover,
+.nav-item.active {
+  background: rgb(255 43 61 / 15%);
+}
+
+.nav-item.active {
+  box-shadow: inset 3px 0 0 var(--rose);
+}
+
+.topbar {
+  background: linear-gradient(135deg, var(--brand), #111111);
+}
+
+.stat-card.blue,
+.stat-card.green,
+.stat-card.emerald,
+.stat-card.rose {
+  border-top-color: var(--rose);
+}
+
+.status-message {
+  border-color: rgb(255 43 61 / 18%);
+  background: #fff1f3;
+  color: var(--teal-dark);
+}
+
+.empty-action,
+.scanner-form,
+.serial-date-filters,
+.record-card {
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+}
+
+.empty-action,
+.scanner-form,
+.scan-result,
+.scanner-session-summary div,
+.scanner-scan-fields label,
+.scanner-login-card label,
+.scanner-document-card input {
+  border-color: rgb(12 18 30 / 12%);
+}
+
+.empty-action svg,
+.scanner-input-wrap svg,
+.with-icon svg,
+.scanner-scan-fields svg {
+  color: var(--rose);
+}
+
+.scanner-mode.active,
+.primary-button,
+.secondary-button,
+.success-button,
+.status-pill.green,
+.scanner-login-actions .scanner-yellow-button,
+.scanner-document-actions .scanner-light-button {
+  background: linear-gradient(135deg, var(--rose), #c70f20);
+  color: #ffffff;
+}
+
+.primary-button:hover,
+.success-button:hover {
+  background: linear-gradient(135deg, #c70f20, #8f0a16);
+}
+
+.accent-button,
+.danger-button,
+.mini-button.red,
+.scanner-login-actions .scanner-danger-button,
+.scanner-document-actions .scanner-danger-button {
+  background: linear-gradient(135deg, #111111, var(--brand));
+  color: #ffffff;
+}
+
+.mini-button.orange,
+.status-pill.orange {
+  background: linear-gradient(135deg, #d6a100, #a87900);
+}
+
+.field input:focus,
+.field select:focus,
+.search-box input:focus,
+.scanner-input-wrap input:focus,
+.scanner-login-card label:focus-within,
+.scanner-document-card input:focus,
+.scanner-scan-fields label:focus-within {
+  border-color: var(--rose);
+  box-shadow: 0 0 0 4px rgb(255 43 61 / 11%);
+}
+
+.scanner-input-wrap input,
+.scan-result strong,
+.panel-heading h1,
+.record-card-header strong,
+.serial-date-caption,
+.scanner-session-summary strong,
+.scanner-document-card h1,
+.scanner-document-card input,
+.scanner-login-card input,
+.scanner-count-row span,
+.scanner-record-card span {
+  color: var(--brand);
+}
+
+th {
+  background: #f1f3f6;
+  color: #202634;
+}
+
+tbody tr:nth-child(odd),
+tbody tr:nth-child(even) {
+  background: #ffffff;
+}
+
+tbody tr:hover {
+  background: #fff1f3;
+}
+
+.scanner-app,
+.scanner-collect-screen {
+  background: var(--background);
+  color: var(--text);
+}
+
+.scanner-login-screen,
+.scanner-document-screen {
+  background: linear-gradient(180deg, #0c121e 0%, #151b27 100%);
+}
+
+.scanner-login-card,
+.scanner-document-card,
+.scanner-collect-header,
+.scanner-record-list {
+  background: #ffffff;
+}
+
+.scanner-login-card .scanner-logo {
+  width: min(245px, 68vw);
+}
+
+.scanner-login-card label,
+.scanner-document-card input[readonly] {
+  background: #f8fafc;
+}
+
+.with-icon input {
+  background: #f8fafc !important;
+}
+
+.scanner-login-card label,
+.scanner-login-card label:focus-within,
+.scanner-scan-fields label:focus-within span {
+  color: var(--rose);
+}
+
+.scanner-blue-button {
+  background: var(--brand);
+}
+
+.scanner-pink-button {
+  background: var(--rose);
+}
+
+.scanner-green-button {
+  background: #1f2937;
+}
+
+.scanner-ac-part-row {
+  color: var(--brand);
+}
+
+.scanner-ac-part-row button {
+  border-color: var(--line);
+  color: var(--brand);
+}
+
+.scanner-ac-part-row button.active {
+  border-color: var(--rose);
+  background: var(--rose);
+}
+
+.scanner-record-card {
+  background: #f8fafc;
+  color: var(--rose);
+}
+
+.scanner-record-card button {
+  color: var(--rose);
+}
+
+.scanner-toast.success {
+  border-color: rgb(255 43 61 / 22%);
+  background: #fff1f3;
+  color: var(--teal-dark);
 }

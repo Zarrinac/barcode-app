@@ -3,9 +3,9 @@ import PwaRegister from './pwa-register';
 import '@/assets/styles/globals.css';
 
 export const metadata: Metadata = {
-  applicationName: 'Barcode Warehouse',
-  title: 'Barcode Warehouse',
-  description: 'Warehouse barcode reader and inventory tracker',
+  applicationName: "D'CODE Barcode Scanner",
+  title: "D'CODE Barcode Scanner",
+  description: "D'CODE warehouse barcode reader and inventory tracker",
   manifest: '/manifest.webmanifest',
   icons: {
     icon: [
@@ -19,8 +19,8 @@ export const metadata: Metadata = {
   },
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
-    title: 'Barcode',
+    statusBarStyle: 'black',
+    title: "D'CODE",
   },
   formatDetection: {
     telephone: false,
