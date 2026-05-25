@@ -1,19 +1,19 @@
-import { getCookieValue, sessionCookieName, verifySessionToken } from '@/lib/auth';
+import { getCurrentUser } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
-export function GET(request: Request) {
-  const session = verifySessionToken(getCookieValue(request, sessionCookieName));
+export async function GET(request: Request) {
+  const user = await getCurrentUser(request);
 
-  if (!session) {
+  if (!user) {
     return Response.json({ authenticated: false });
   }
 
   return Response.json({
     authenticated: true,
     user: {
-      role: session.role,
-      username: session.username,
+      role: user.role,
+      username: user.username,
     },
   });
 }

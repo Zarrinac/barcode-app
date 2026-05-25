@@ -3,10 +3,17 @@ import { MovementType } from '@prisma/client';
 import { mapSerialRecord, toPrismaMovement, toPrismaSerialStatus } from '@/lib/api-mappers';
 import { jsonError, parseId, readJsonBody, readString } from '@/lib/api-utils';
 import { prisma } from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
 export async function PATCH(request: Request, ctx: RouteContext<'/api/serial-records/[id]'>) {
+  const currentUser = await getCurrentUser(request);
+
+  if (!currentUser) {
+    return jsonError('Authentication is required.', 401);
+  }
+
   const { id: rawId } = await ctx.params;
   const id = parseId(rawId);
 
@@ -46,7 +53,8 @@ export async function PATCH(request: Request, ctx: RouteContext<'/api/serial-rec
       ),
       productModelId: product?.id,
       legacyFlag: 1,
-      updatedBy: 'admin',
+      updatedAt: new Date(),
+      updatedBy: currentUser.username,
     },
   });
 

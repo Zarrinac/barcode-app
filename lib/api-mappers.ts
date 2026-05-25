@@ -46,7 +46,7 @@ export function mapSerialRecord(serial: SerialRecord) {
     movement: serial.movement === 'OUTBOUND' ? 'خروج' : 'ورود',
     createdAt: toPersianDate(serial.createdAt),
     createdBy: serial.createdBy || '-',
-    updatedAt: toPersianDate(serial.updatedAt),
+    updatedAt: serial.updatedAt ? toPersianDate(serial.updatedAt) : '',
     updatedBy: serial.updatedBy || '-',
     status: serial.status === 'EXITED' ? 'خروج شده' : 'ثبت شده',
   };

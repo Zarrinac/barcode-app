@@ -3,6 +3,7 @@ import { MovementType, RecordSource, SerialStatus } from '@prisma/client';
 import { mapProductModel, mapSerialRecord, toPersianDate } from '@/lib/api-mappers';
 import { jsonError, readJsonBody, readString } from '@/lib/api-utils';
 import { prisma } from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
@@ -21,6 +22,12 @@ function getStatus(mode: ScanMode) {
 }
 
 export async function POST(request: Request) {
+  const currentUser = await getCurrentUser(request);
+
+  if (!currentUser) {
+    return jsonError('Authentication is required.', 401);
+  }
+
   const body = await readJsonBody(request);
   const barcode = normalizeBarcode(readString(body, 'barcode'));
   const requestedMode = readString(body, 'mode') as ScanMode;
@@ -134,8 +141,7 @@ export async function POST(request: Request) {
       source: RecordSource.PDA,
       productModelId: activeProduct?.id || existingSerial?.productModelId || null,
       locationId: existingSerial?.locationId || null,
-      createdBy: 'scanner',
-      updatedBy: 'scanner',
+      createdBy: currentUser.username,
     },
   });
 

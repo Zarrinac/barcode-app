@@ -16,6 +16,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type {
   AcPart,
+  AuthUser,
   LoginResponse,
   ProductModel,
   ProductModelsResponse,
@@ -51,6 +52,7 @@ export default function ScannerPage() {
   const [acPart, setAcPart] = useState<AcPart>(null);
   const [rows, setRows] = useState<ScanRow[]>([]);
   const [models, setModels] = useState<ProductModel[]>([]);
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [statusMessage, setStatusMessage] = useState('نام کاربری و رمز عبور را وارد کنید.');
   const [statusTone, setStatusTone] = useState<'default' | 'error'>('default');
   const [toast, setToast] = useState<ScannerToast | null>(null);
@@ -113,6 +115,7 @@ export default function ScannerPage() {
           setSerialNo('');
           setDocumentNo('');
           setCustomerName('');
+          setCurrentUser(null);
           goToStep('login');
         }
 
@@ -127,15 +130,18 @@ export default function ScannerPage() {
         }
 
         if (!session.authenticated) {
+          setCurrentUser(null);
           setStatusMessage('نام کاربری و رمز عبور را وارد کنید.');
           setStatusTone('default');
           return;
         }
 
+        setCurrentUser(session.user);
         setDate(formatPersianDate(new Date()));
         goToStep('document');
       } catch {
         if (!isCancelled) {
+          setCurrentUser(null);
           setStatusMessage('نام کاربری و رمز عبور را وارد کنید.');
           setStatusTone('default');
         }
@@ -240,11 +246,12 @@ export default function ScannerPage() {
     setIsLoggingIn(true);
 
     try {
-      await apiRequest<LoginResponse>('/api/login', {
+      const data = await apiRequest<LoginResponse>('/api/login', {
         body: JSON.stringify(loginForm),
         method: 'POST',
       });
       window.localStorage.setItem('barcode-app-login', JSON.stringify(true));
+      setCurrentUser(data.user);
       setDate(formatPersianDate(new Date()));
       goToStep('document');
     } catch (error) {
@@ -636,7 +643,16 @@ export default function ScannerPage() {
         >
           <Menu className={'size-7!'} />
         </button>
-        <h1 className={'m-0 text-center text-2xl font-black max-xs:text-2xl'}>اسکن کالا</h1>
+        <div className={'grid min-w-0 gap-0.5 text-center'}>
+          <h1 className={'m-0 text-2xl font-black leading-tight max-xs:text-2xl'}>اسکن کالا</h1>
+          <span
+            className={
+              'overflow-hidden text-ellipsis whitespace-nowrap text-xs font-extrabold text-app-muted'
+            }
+          >
+            کاربر جاری: {currentUser?.username ?? '-'}
+          </span>
+        </div>
         <button
           className={'grid place-items-center border-0 bg-transparent text-app-ink'}
           aria-label="خانه"

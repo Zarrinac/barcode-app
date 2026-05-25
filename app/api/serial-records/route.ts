@@ -3,6 +3,7 @@ import { MovementType, RecordSource, SerialStatus } from '@prisma/client';
 import { mapSerialRecord, toPrismaMovement } from '@/lib/api-mappers';
 import { jsonError, readJsonBody, readString } from '@/lib/api-utils';
 import { prisma } from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,6 +17,12 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const currentUser = await getCurrentUser(request);
+
+  if (!currentUser) {
+    return jsonError('Authentication is required.', 401);
+  }
+
   const body = await readJsonBody(request);
   const serialNo = readString(body, 'serialNo');
 
@@ -46,8 +53,7 @@ export async function POST(request: Request) {
       status: movement === MovementType.OUTBOUND ? SerialStatus.EXITED : SerialStatus.REGISTERED,
       source: RecordSource.MANUAL,
       productModelId: product?.id,
-      createdBy: 'admin',
-      updatedBy: 'admin',
+      createdBy: currentUser.username,
     },
   });
 
