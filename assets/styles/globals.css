@@ -45,6 +45,14 @@
   --shadow-dcode-soft: 0 10px 26px rgb(12 18 30 / 7%);
   --shadow-dcode-panel: 0 18px 42px rgb(12 18 30 / 10%);
   --shadow-dcode-modal: 0 34px 90px rgb(9 23 33 / 34%);
+
+  /* breakpoints */
+  --breakpoint-xs: 30rem; /* 480 px */
+  --breakpoint-2xs: 20rem; /* 320 px */
+  --breakpoint-smd: 42.5rem; /* 680 px */
+  --breakpoint-3xl: 90.0625rem; /* 1440 px */
+  --breakpoint-4xl: 108rem; /* 1728 px */
+  --breakpoint-5xl: 120rem; /* 1920 px */
 }
 
 @layer base {
