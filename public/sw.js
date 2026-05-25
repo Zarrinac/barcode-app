@@ -1,4 +1,4 @@
-const CACHE_NAME = 'barcode-warehouse-v3';
+const CACHE_NAME = 'dcode-barcode-v1';
 const APP_SHELL = ['/', '/scanner', '/manifest.webmanifest'];
 
 self.addEventListener('install', (event) => {

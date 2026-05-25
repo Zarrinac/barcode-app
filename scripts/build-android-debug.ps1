@@ -17,6 +17,26 @@ try {
   if ($LASTEXITCODE -ne 0) {
     throw "Capacitor sync failed with exit code $LASTEXITCODE"
   }
+
+  $stringsPath = Join-Path $repoRoot 'android\app\src\main\res\values\strings.xml'
+  [xml]$stringsXml = Get-Content -LiteralPath $stringsPath
+  foreach ($item in $stringsXml.resources.string) {
+    if ($item.name -eq 'app_name') {
+      $item.InnerText = '"D''CODE"'
+    }
+    if ($item.name -eq 'title_activity_main') {
+      $item.InnerText = '"D''CODE Barcode Scanner"'
+    }
+  }
+  $settings = New-Object System.Xml.XmlWriterSettings
+  $settings.Encoding = New-Object System.Text.UTF8Encoding($false)
+  $settings.Indent = $true
+  $writer = [System.Xml.XmlWriter]::Create($stringsPath, $settings)
+  try {
+    $stringsXml.Save($writer)
+  } finally {
+    $writer.Close()
+  }
 } finally {
   Pop-Location
 }

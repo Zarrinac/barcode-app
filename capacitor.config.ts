@@ -5,7 +5,7 @@ const serverUrl =
 
 const config: CapacitorConfig = {
   appId: 'com.hisense.barcode',
-  appName: 'Barcode Warehouse',
+  appName: "D'CODE",
   webDir: 'capacitor-www',
   server: {
     url: serverUrl,
