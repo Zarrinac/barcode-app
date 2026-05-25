@@ -1,0 +1,3 @@
+Background: #0C121E
+Accent Red: #FF2B3D
+Light Text: #F5F7FA

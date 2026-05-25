@@ -1,28 +1,23 @@
-Hisense Warehouse Barcode Scanner - icon asset pack
+D'CODE icon asset pack (barcode mark + D'CODE wordmark)
 
-This package was built from the approved app icon design.
+This pack uses:
+- App icon / launcher icon: barcode symbol with D'CODE wordmark below
+- Favicon: symbol-only version for better readability at very small sizes
 
-Main included assets
-- favicon.ico
-- icon-192.png
-- icon-512.png
-- icon-1024.png
-- apple-icon.png
+Folders
+- source/: editable source masters exported as PNGs
+- nextjs-app-assets/: ready files for a Next.js App Router app/ folder
+- web/: favicon PNGs and site.webmanifest
+- android/: Play Store icon, launcher icons, and adaptive icon files
 
-Next.js (App Router)
-Copy these files from nextjs-app-assets/ into your app/ folder:
+Next.js usage
+Copy these into your app/ folder:
 - favicon.ico
 - icon.png
 - apple-icon.png
-Optionally also use:
-- icon-192.png
-- icon-512.png
-- site.webmanifest
+Optional: icon-192.png, icon-512.png, site.webmanifest
 
-Android
-- Use android/play-store-icon-512.png for Play Store listing
-- Use android/mipmap-*/ic_launcher.png for launcher icons
-- Adaptive assets are included as android/adaptive-foreground.png and android/adaptive-background.png
-
-Web favicon assets
-Files are inside web/ including 16x16, 32x32, 48x48, 64x64, apple-touch-icon, and site.webmanifest
+Android usage
+- Play Store: android/play-store-icon-512.png
+- Launcher icons: android/mipmap-*/ic_launcher.png
+- Adaptive icon: android/adaptive-foreground.png and android/adaptive-background.png
