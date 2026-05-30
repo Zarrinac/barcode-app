@@ -7,6 +7,10 @@ import { getCurrentUser } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
+function isRealTrackingCode(value: string) {
+  return value.trim().toLowerCase() !== 'panel';
+}
+
 export async function GET() {
   const serials = await prisma.serialRecord.findMany({
     orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
@@ -32,6 +36,7 @@ export async function POST(request: Request) {
 
   const productCode = readString(body, 'productCode');
   const requestedModel = readString(body, 'model');
+  const trackingCode = readString(body, 'trackingCode');
   const product = productCode
     ? await prisma.productModel.findFirst({
         where: { productCode },
@@ -39,6 +44,27 @@ export async function POST(request: Request) {
       })
     : null;
   const movement = toPrismaMovement(readString(body, 'movement'));
+  const duplicateConditions = [
+    { serialNo },
+    ...(trackingCode && isRealTrackingCode(trackingCode) ? [{ trackingCode }] : []),
+  ];
+  const duplicate = await prisma.serialRecord.findFirst({
+    select: {
+      serialNo: true,
+      trackingCode: true,
+    },
+    where: {
+      OR: duplicateConditions,
+    },
+  });
+
+  if (duplicate?.serialNo === serialNo) {
+    return jsonError('شماره سریال قبلا ثبت شده است.', 409);
+  }
+
+  if (duplicate?.trackingCode === trackingCode) {
+    return jsonError('کد رهگیری قبلا ثبت شده است.', 409);
+  }
 
   const serial = await prisma.serialRecord.create({
     data: {
@@ -47,13 +73,15 @@ export async function POST(request: Request) {
       customerName: readString(body, 'customerName') || 'انبار مرکزی',
       productCode: productCode || product?.productCode || '',
       modelName: requestedModel || product?.modelName || '',
-      trackingCode: readString(body, 'trackingCode'),
+      trackingCode,
       serialNo,
       movement,
       status: movement === MovementType.OUTBOUND ? SerialStatus.EXITED : SerialStatus.REGISTERED,
       source: RecordSource.MANUAL,
       productModelId: product?.id,
       createdBy: currentUser.username,
+      updatedAt: null,
+      updatedBy: null,
     },
   });
 

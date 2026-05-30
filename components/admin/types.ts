@@ -1,7 +1,7 @@
 export type ViewId = 'serial-new' | 'serial-list' | 'product-new' | 'product-list' | 'locations';
 export type MovementType = 'ورود' | 'خروج';
 export type ScanMode = 'lookup' | 'inbound' | 'outbound';
-export type SerialStatus = 'ثبت شده' | 'خروج شده';
+export type SerialStatus = 'ثبت شده' | 'ویرایش شده' | 'خروج شده';
 
 export type ProductModel = {
   id: string;
@@ -10,7 +10,7 @@ export type ProductModel = {
   warrantyCode: string;
   createdAt: string;
   updatedAt: string;
-  status: 'فعال' | 'غیرفعال';
+  status: 'ثبت شده' | 'ویرایش شده';
 };
 
 export type SerialRecord = {

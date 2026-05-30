@@ -21,6 +21,10 @@ function getStatus(mode: ScanMode) {
   return mode === 'outbound' ? SerialStatus.EXITED : SerialStatus.REGISTERED;
 }
 
+function isRealTrackingCode(value: string) {
+  return value.trim().toLowerCase() !== 'panel';
+}
+
 export async function POST(request: Request) {
   const currentUser = await getCurrentUser(request);
 
@@ -127,6 +131,29 @@ export async function POST(request: Request) {
   }
 
   const movement = getMovement(mode);
+  const duplicateTrackingCode =
+    contextTrackingCode && isRealTrackingCode(contextTrackingCode)
+      ? await prisma.serialRecord.findFirst({
+          select: {
+            trackingCode: true,
+          },
+          where: {
+            trackingCode: contextTrackingCode,
+          },
+        })
+      : null;
+
+  if (existingSerial?.serialNo === barcode) {
+    return jsonError('شماره سریال قبلا ثبت شده است.', 409);
+  }
+
+  if (
+    existingSerial?.trackingCode === barcode ||
+    duplicateTrackingCode?.trackingCode === contextTrackingCode
+  ) {
+    return jsonError('کد رهگیری قبلا ثبت شده است.', 409);
+  }
+
   const serial = await prisma.serialRecord.create({
     data: {
       docDate: toPersianDate(new Date()),
@@ -142,6 +169,8 @@ export async function POST(request: Request) {
       productModelId: activeProduct?.id || existingSerial?.productModelId || null,
       locationId: existingSerial?.locationId || null,
       createdBy: currentUser.username,
+      updatedAt: null,
+      updatedBy: null,
     },
   });
 

@@ -18,6 +18,7 @@ enum MovementType {
 
 enum SerialStatus {
   REGISTERED
+  EDITED
   EXITED
   CANCELLED
 }

@@ -17,6 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   AcPart,
   AuthUser,
+  DuplicateSerialsResponse,
   LoginResponse,
   ProductModel,
   ProductModelsResponse,
@@ -33,11 +34,41 @@ import {
   normalizeScan,
   scannerStorageKey,
   scannerSuccessToastMs,
+  scannerToastMs,
 } from '@/components/scanner/scanner-utils';
 import { ensureSerialExcelFolder, saveSerialExcelFile } from '@/lib/serial-excel';
 
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ');
+}
+
+function isRealTrackingCode(value: string) {
+  return value.trim().toLowerCase() !== 'panel';
+}
+
+function getDuplicateRowsMessage(rows: ScanRow[]) {
+  const serialNos = new Set<string>();
+  const trackingCodes = new Set<string>();
+
+  for (const row of rows) {
+    if (serialNos.has(row.serialNo)) {
+      return `شماره سریال ${row.serialNo} در همین سند تکراری است.`;
+    }
+
+    serialNos.add(row.serialNo);
+
+    if (!isRealTrackingCode(row.trackingCode)) {
+      continue;
+    }
+
+    if (trackingCodes.has(row.trackingCode)) {
+      return `کد رهگیری ${row.trackingCode} در همین سند تکراری است.`;
+    }
+
+    trackingCodes.add(row.trackingCode);
+  }
+
+  return null;
 }
 
 export default function ScannerPage() {
@@ -173,7 +204,7 @@ export default function ScannerPage() {
       return;
     }
 
-    const timeout = window.setTimeout(() => setToast(null), 2400);
+    const timeout = window.setTimeout(() => setToast(null), scannerToastMs);
 
     return () => window.clearTimeout(timeout);
   }, [toast]);
@@ -188,6 +219,12 @@ export default function ScannerPage() {
     }
   }, [step]);
 
+  const showToast = useCallback((message: string, tone: ScannerToast['tone']) => {
+    setToast({ message, tone });
+    setStatusMessage(message);
+    setStatusTone(tone === 'error' ? 'error' : 'default');
+  }, []);
+
   const addRow = useCallback(
     (draft?: Partial<Pick<ScanRow, 'productCode' | 'serialNo' | 'trackingCode'>>) => {
       const cleanProductCode = normalizeNumberInput(draft?.productCode ?? productCode);
@@ -196,6 +233,24 @@ export default function ScannerPage() {
       const cleanSerialNo = normalizeScan(draft?.serialNo ?? serialNo);
 
       if (!cleanProductCode || !cleanTrackingCode || !cleanSerialNo) {
+        return;
+      }
+
+      if (rows.some((row) => row.serialNo === cleanSerialNo)) {
+        showToast(`شماره سریال ${cleanSerialNo} در همین سند تکراری است.`, 'error');
+        setSerialNo('');
+        window.requestAnimationFrame(() => serialInputRef.current?.focus());
+        return;
+      }
+
+      if (
+        isRealTrackingCode(cleanTrackingCode) &&
+        rows.some((row) => row.trackingCode === cleanTrackingCode)
+      ) {
+        showToast(`کد رهگیری ${cleanTrackingCode} در همین سند تکراری است.`, 'error');
+        setTrackingCode('');
+        setSerialNo('');
+        window.requestAnimationFrame(() => trackingInputRef.current?.focus());
         return;
       }
 
@@ -228,7 +283,9 @@ export default function ScannerPage() {
       documentNo,
       modelByProductCode,
       productCode,
+      rows,
       serialNo,
+      showToast,
       trackingCode,
     ],
   );
@@ -345,12 +402,6 @@ export default function ScannerPage() {
     window.requestAnimationFrame(() => trackingInputRef.current?.focus());
   };
 
-  const showToast = (message: string, tone: ScannerToast['tone']) => {
-    setToast({ message, tone });
-    setStatusMessage(message);
-    setStatusTone(tone === 'error' ? 'error' : 'default');
-  };
-
   const finishSuccessfulBatch = (message: string) => {
     setIsCompleting(true);
     showToast(message, 'success');
@@ -375,8 +426,38 @@ export default function ScannerPage() {
       return;
     }
 
+    const localDuplicateMessage = getDuplicateRowsMessage(rows);
+
+    if (localDuplicateMessage) {
+      showToast(localDuplicateMessage, 'error');
+      return;
+    }
+
     setIsSending(true);
     try {
+      const duplicates = await apiRequest<DuplicateSerialsResponse>(
+        '/api/serial-records/duplicates',
+        {
+          body: JSON.stringify({
+            serialNos: rows.map((row) => row.serialNo),
+            trackingCodes: rows
+              .map((row) => row.trackingCode)
+              .filter((code) => isRealTrackingCode(code)),
+          }),
+          method: 'POST',
+        },
+      );
+
+      if (duplicates.serialNos.length > 0) {
+        showToast(`شماره سریال ${duplicates.serialNos[0]} قبلا در دیتابیس ثبت شده است.`, 'error');
+        return;
+      }
+
+      if (duplicates.trackingCodes.length > 0) {
+        showToast(`کد رهگیری ${duplicates.trackingCodes[0]} قبلا در دیتابیس ثبت شده است.`, 'error');
+        return;
+      }
+
       for (const row of [...rows].reverse()) {
         await apiRequest('/api/serial-records', {
           body: JSON.stringify({
@@ -829,6 +910,18 @@ export default function ScannerPage() {
           پاکسازی
         </button>
       </section>
+      {toast && (
+        <div
+          className={cx(
+            'mt-2.5 flex min-h-12 items-center justify-start rounded-xl border px-3 py-2 text-right text-sm font-extrabold shadow-dcode-soft',
+            toast.tone === 'success'
+              ? 'border-emerald-500/25 bg-emerald-50 text-emerald-700'
+              : 'border-red-400/25 bg-red-50 text-red-700',
+          )}
+        >
+          {toast.message}
+        </div>
+      )}
 
       <section
         className={
@@ -909,26 +1002,6 @@ export default function ScannerPage() {
           </article>
         ))}
       </section>
-      <p
-        className={cx(
-          'mt-2 min-h-5.5 rounded-lg px-3 py-1 text-center text-sm font-bold',
-          statusTone === 'error' ? 'bg-dcode-red-700 text-white' : 'text-app-muted',
-        )}
-      >
-        {statusMessage}
-      </p>
-      {toast && (
-        <div
-          className={cx(
-            'fixed top-3.5 right-3 left-3 z-80 flex min-h-12 items-center justify-start rounded-lg border px-4 py-2.5 text-right text-base font-extrabold shadow-xl max-xs:top-2.5 max-xs:right-2.5 max-xs:left-2.5 max-xs:text-sm',
-            toast.tone === 'success'
-              ? 'border-emerald-500/25 bg-emerald-50 text-emerald-700'
-              : 'border-red-400/25 bg-red-50 text-red-700',
-          )}
-        >
-          {toast.message}
-        </div>
-      )}
     </main>
   );
 }

@@ -32,6 +32,11 @@ export type ProductModelsResponse = {
   models: ProductModel[];
 };
 
+export type DuplicateSerialsResponse = {
+  serialNos: string[];
+  trackingCodes: string[];
+};
+
 export type AuthUser = {
   role: string;
   username: string;
