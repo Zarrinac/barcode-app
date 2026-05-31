@@ -20,8 +20,6 @@
 
 # production
 /build
-/public/downloads/*.apk
-!/public/downloads/.gitkeep
 
 # misc
 .DS_Store
