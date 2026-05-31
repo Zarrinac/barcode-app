@@ -3,6 +3,7 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $androidDir = Join-Path $repoRoot 'android'
 $javaHome = 'C:\Program Files\Android\Android Studio\jbr'
+$capacitorServerUrl = 'http://bcrs.dcode.co.ir/scanner?freshLogin=1'
 
 if (-not (Test-Path (Join-Path $javaHome 'bin\java.exe'))) {
   throw "Android Studio JDK 21 was not found at $javaHome"
@@ -10,9 +11,11 @@ if (-not (Test-Path (Join-Path $javaHome 'bin\java.exe'))) {
 
 $env:JAVA_HOME = $javaHome
 $env:Path = "$env:JAVA_HOME\bin;$env:Path"
+$env:CAPACITOR_SERVER_URL = $capacitorServerUrl
 
 Push-Location $repoRoot
 try {
+  Write-Host "Using Capacitor server URL: $env:CAPACITOR_SERVER_URL"
   & npx.cmd cap sync android
   if ($LASTEXITCODE -ne 0) {
     throw "Capacitor sync failed with exit code $LASTEXITCODE"
@@ -71,3 +74,15 @@ try {
 } finally {
   Pop-Location
 }
+
+$sourceApk = Join-Path $androidDir 'app\build\outputs\apk\debug\app-debug.apk'
+$downloadDir = Join-Path $repoRoot 'public\downloads'
+$latestApk = Join-Path $downloadDir 'dcode-barcode-latest.apk'
+
+if (-not (Test-Path -LiteralPath $sourceApk)) {
+  throw "Debug APK was not found at $sourceApk"
+}
+
+New-Item -ItemType Directory -Path $downloadDir -Force | Out-Null
+Copy-Item -LiteralPath $sourceApk -Destination $latestApk -Force
+Write-Host "Published latest APK to $latestApk"

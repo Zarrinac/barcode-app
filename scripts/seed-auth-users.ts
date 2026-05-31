@@ -17,6 +17,7 @@ import { hashPassword } from '../lib/auth';
 const users = [
   { password: '123456', role: UserRole.ADMIN, username: 'admin' },
   { password: '12345678', role: UserRole.USER, username: 'rsf' },
+  { password: '108308', role: UserRole.USER, username: 'm.hadipour' },
 ];
 
 async function main() {
