@@ -4,6 +4,7 @@ import { mapProductModel, mapSerialRecord, toPersianDate } from '@/lib/api-mappe
 import { jsonError, readJsonBody, readString } from '@/lib/api-utils';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/session';
+import { getDefaultWarehouseLocationId } from '@/lib/warehouse-location';
 
 export const dynamic = 'force-dynamic';
 
@@ -154,6 +155,8 @@ export async function POST(request: Request) {
     return jsonError('کد رهگیری قبلا ثبت شده است.', 409);
   }
 
+  const locationId = existingSerial?.locationId || (await getDefaultWarehouseLocationId());
+
   const serial = await prisma.serialRecord.create({
     data: {
       docDate: toPersianDate(new Date()),
@@ -167,7 +170,7 @@ export async function POST(request: Request) {
       status: getStatus(mode),
       source: RecordSource.PDA,
       productModelId: activeProduct?.id || existingSerial?.productModelId || null,
-      locationId: existingSerial?.locationId || null,
+      locationId,
       createdBy: currentUser.username,
       updatedAt: null,
       updatedBy: null,
