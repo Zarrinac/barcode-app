@@ -84,8 +84,6 @@ export async function POST(request: Request) {
       productModelId: product?.id,
       locationId,
       createdBy: currentUser.username,
-      updatedAt: null,
-      updatedBy: null,
     },
   });
 
