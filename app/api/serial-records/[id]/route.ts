@@ -1,5 +1,3 @@
-import { SerialStatus } from '@prisma/client';
-
 import { mapSerialRecord, toPrismaMovement } from '@/lib/api-mappers';
 import { jsonError, parseId, readJsonBody, readString } from '@/lib/api-utils';
 import { prisma } from '@/lib/prisma';
@@ -74,7 +72,6 @@ export async function PATCH(request: Request, ctx: RouteContext<'/api/serial-rec
       trackingCode,
       serialNo,
       movement,
-      status: SerialStatus.EDITED,
       productModelId: product?.id,
       legacyFlag: 1,
       updatedAt: new Date(),
