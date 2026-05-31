@@ -18,7 +18,7 @@ export function mapProductModel(model: ProductModel) {
     productCode: model.productCode,
     warrantyCode: model.warrantyCode || '0',
     createdAt: toPersianDate(model.createdAt),
-    updatedAt: model.legacyFlag === 1 ? toPersianDate(model.updatedAt) : '',
+    updatedAt: model.legacyFlag === 1 && model.updatedAt ? toPersianDate(model.updatedAt) : '',
     status: model.legacyFlag === 1 ? 'ویرایش شده' : 'ثبت شده',
   };
 }
