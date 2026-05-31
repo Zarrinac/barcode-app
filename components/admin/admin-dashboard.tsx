@@ -72,6 +72,7 @@ const scanModeOptions: Array<{ id: ScanMode; label: string }> = [
   { id: 'outbound', label: 'خروج' },
   { id: 'lookup', label: 'استعلام' },
 ];
+const statusMessageTimeoutMs = 5000;
 
 function cx(...classes: Array<string | false | null | undefined>) {
   return classes.filter(Boolean).join(' ');
@@ -120,6 +121,7 @@ export default function Home() {
   const [locations, setLocations] = useState<LocationSummary[]>(seedLocations);
   const [dataSource, setDataSource] = useState<'sample' | 'database'>('sample');
   const [statusMessage, setStatusMessage] = useState('');
+  const [statusTone, setStatusTone] = useState<'success' | 'error'>('success');
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [modelSearch, setModelSearch] = useState('');
   const [serialSearch, setSerialSearch] = useState('');
@@ -246,6 +248,16 @@ export default function Home() {
   }, [hasHydrated, loadBootstrapData]);
 
   useEffect(() => {
+    if (!statusMessage) {
+      return;
+    }
+
+    const timeout = window.setTimeout(() => setStatusMessage(''), statusMessageTimeoutMs);
+
+    return () => window.clearTimeout(timeout);
+  }, [statusMessage]);
+
+  useEffect(() => {
     if (!hasHydrated) {
       return;
     }
@@ -349,6 +361,11 @@ export default function Home() {
     setProductDialog({ mode: 'create', draft: emptyProductDraft });
   };
 
+  const showStatusMessage = (message: string, tone: 'success' | 'error') => {
+    setStatusMessage(message);
+    setStatusTone(tone);
+  };
+
   const openSerialCreate = () => {
     setSerialDialog({ mode: 'create', draft: createEmptySerialDraft() });
   };
@@ -383,7 +400,7 @@ export default function Home() {
       window.localStorage.removeItem('barcode-app-login');
       setCurrentUser(null);
       setIsLoggedIn(false);
-      setStatusMessage(error instanceof Error ? error.message : 'ورود ناموفق بود.');
+      showStatusMessage(error instanceof Error ? error.message : 'ورود ناموفق بود.', 'error');
     }
   };
 
@@ -425,7 +442,7 @@ export default function Home() {
 
       setScanResult(data);
       setScanValue('');
-      setStatusMessage(data.message);
+      showStatusMessage(data.message, data.action === 'NOT_FOUND' ? 'error' : 'success');
 
       if (data.action === 'PRODUCT_SELECTED' && data.matchedModel) {
         setScanContext((current) => ({
@@ -451,7 +468,7 @@ export default function Home() {
         void loadBootstrapData();
       }
     } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : 'ثبت اسکن ناموفق بود.');
+      showStatusMessage(error instanceof Error ? error.message : 'ثبت اسکن ناموفق بود.', 'error');
     } finally {
       setIsScanBusy(false);
       window.requestAnimationFrame(() => scanInputRef.current?.focus());
@@ -488,11 +505,15 @@ export default function Home() {
       );
       setProductDialog(null);
       setActiveView('product-list');
-      setStatusMessage(
+      showStatusMessage(
         productDialog.mode === 'create' ? 'مدل کالا ذخیره شد.' : 'مدل کالا ویرایش شد.',
+        'success',
       );
     } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : 'ذخیره مدل کالا ناموفق بود.');
+      showStatusMessage(
+        error instanceof Error ? error.message : 'ذخیره مدل کالا ناموفق بود.',
+        'error',
+      );
     }
   };
 
@@ -516,7 +537,7 @@ export default function Home() {
       onConfirm: async () => {
         await apiRequest<{ ok: boolean }>(`/api/product-models/${id}`, { method: 'DELETE' });
         setModels((current) => current.filter((model) => model.id !== id));
-        setStatusMessage('مدل کالا حذف شد.');
+        showStatusMessage('مدل کالا حذف شد.', 'success');
       },
     });
   };
@@ -562,10 +583,16 @@ export default function Home() {
           : current.map((item) => (item.id === data.serial.id ? data.serial : item)),
       );
       setSerialDialog(null);
-      setStatusMessage(serialDialog.mode === 'create' ? 'سریال ذخیره شد.' : 'سریال ویرایش شد.');
+      showStatusMessage(
+        serialDialog.mode === 'create' ? 'سریال ذخیره شد.' : 'سریال ویرایش شد.',
+        'success',
+      );
       void loadBootstrapData();
     } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : 'ذخیره سریال ناموفق بود.');
+      showStatusMessage(
+        error instanceof Error ? error.message : 'ذخیره سریال ناموفق بود.',
+        'error',
+      );
     }
   };
 
@@ -601,7 +628,7 @@ export default function Home() {
       onConfirm: async () => {
         await apiRequest<{ ok: boolean }>(`/api/serial-records/${id}`, { method: 'DELETE' });
         setSerials((current) => current.filter((serial) => serial.id !== id));
-        setStatusMessage('سریال حذف شد.');
+        showStatusMessage('سریال حذف شد.', 'success');
         void loadBootstrapData();
       },
     });
@@ -636,11 +663,15 @@ export default function Home() {
           : current.map((item) => (item.id === data.location.id ? data.location : item)),
       );
       setLocationDialog(null);
-      setStatusMessage(
+      showStatusMessage(
         locationDialog.mode === 'create' ? 'محل کالا ذخیره شد.' : 'محل کالا ویرایش شد.',
+        'success',
       );
     } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : 'ذخیره محل کالا ناموفق بود.');
+      showStatusMessage(
+        error instanceof Error ? error.message : 'ذخیره محل کالا ناموفق بود.',
+        'error',
+      );
     }
   };
 
@@ -652,7 +683,10 @@ export default function Home() {
     try {
       await confirmDialog.onConfirm();
     } catch (error) {
-      setStatusMessage(error instanceof Error ? error.message : 'حذف اطلاعات ناموفق بود.');
+      showStatusMessage(
+        error instanceof Error ? error.message : 'حذف اطلاعات ناموفق بود.',
+        'error',
+      );
     } finally {
       setConfirmDialog(null);
     }
@@ -860,9 +894,12 @@ export default function Home() {
 
         {statusMessage && (
           <p
-            className={
-              '-mt-1 mb-3.5 rounded-xl border border-dcode-red-500/20 bg-dcode-red-100 px-4 py-3 font-extrabold text-dcode-red-700'
-            }
+            className={cx(
+              '-mt-1 mb-3.5 rounded-xl border px-4 py-3 font-extrabold',
+              statusTone === 'success'
+                ? 'border-emerald-500/25 bg-emerald-50 text-emerald-700'
+                : 'border-dcode-red-500/20 bg-dcode-red-100 text-dcode-red-700',
+            )}
           >
             {statusMessage}
           </p>
@@ -1407,7 +1444,9 @@ export default function Home() {
                       <td>{item.createdAt}</td>
                       <td>{item.updatedAt}</td>
                       <td>
-                        <StatusPill tone="green">ثبت شده</StatusPill>
+                        <StatusPill tone={item.status === 'ثبت شده' ? 'green' : 'orange'}>
+                          {item.status}
+                        </StatusPill>
                       </td>
                       <td>
                         <div className={'flex gap-2 max-smd:w-full max-smd:flex-wrap'}>
@@ -1472,7 +1511,9 @@ export default function Home() {
                     <div
                       className={'flex items-start justify-between gap-3 pt-0.5 max-smd:flex-col'}
                     >
-                      <StatusPill tone="green">ثبت شده</StatusPill>
+                      <StatusPill tone={item.status === 'ثبت شده' ? 'green' : 'orange'}>
+                        {item.status}
+                      </StatusPill>
                       <div className={'flex gap-2 max-smd:w-full max-smd:flex-wrap'}>
                         <button
                           className={cx(

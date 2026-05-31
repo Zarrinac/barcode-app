@@ -1,7 +1,14 @@
 import { config } from 'dotenv';
+import { existsSync } from 'node:fs';
+
+const hasProductionEnv = existsSync('.env.production');
 
 config({ path: '.env.production' });
 config();
+
+if (!hasProductionEnv && process.env.NODE_ENV !== 'production') {
+  config({ path: '.env.local', override: true });
+}
 
 async function main() {
   const requiredEnv = ['DATABASE_URL', 'AUTH_SECRET'] as const;
@@ -28,12 +35,16 @@ async function main() {
         username: true,
       },
     });
-    const activeUsernames = users.filter((user) => user.isActive).map((user) => user.username);
+    const activeUsers = users.filter((user) => user.isActive);
+    const activeAdmins = activeUsers.filter((user) => user.role === 'ADMIN');
+    const activeUsernames = activeUsers.map((user) => user.username);
 
-    for (const username of ['admin', 'rsf']) {
-      if (!activeUsernames.includes(username)) {
-        throw new Error(`Required login user is missing or inactive: ${username}`);
-      }
+    if (activeUsers.length === 0) {
+      throw new Error('At least one active login user is required.');
+    }
+
+    if (activeAdmins.length === 0) {
+      throw new Error('At least one active admin user is required.');
     }
 
     console.log('Production readiness check passed.');

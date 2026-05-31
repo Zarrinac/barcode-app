@@ -2,6 +2,7 @@ import type { ScannerStep } from '@/components/scanner/scanner-types';
 
 export const scannerStorageKey = 'barcode-app-scanner-session';
 export const scannerSuccessToastMs = 2800;
+export const scannerToastMs = 4500;
 
 const persianDatePartsFormatter = new Intl.DateTimeFormat('en-US-u-ca-persian', {
   day: '2-digit',

@@ -32,7 +32,7 @@ export async function POST(request: Request) {
       warrantyCode,
       source: RecordSource.MANUAL,
       createdBy: 'admin',
-      updatedBy: 'admin',
+      updatedBy: null,
     },
   });
 
