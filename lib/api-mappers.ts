@@ -49,11 +49,7 @@ export function mapSerialRecord(serial: SerialRecord) {
     updatedAt: serial.updatedAt ? toPersianDate(serial.updatedAt) : '',
     updatedBy: serial.updatedBy || '-',
     status:
-      serial.status === 'EXITED'
-        ? 'خروج شده'
-        : serial.status === 'EDITED'
-          ? 'ویرایش شده'
-          : 'ثبت شده',
+      serial.legacyFlag === 1 ? 'ویرایش شده' : serial.status === 'EXITED' ? 'خروج شده' : 'ثبت شده',
   };
 }
 
