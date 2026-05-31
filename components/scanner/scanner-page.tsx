@@ -26,6 +26,7 @@ import {
   scannerSuccessToastMs,
   scannerToastMs,
 } from '@/components/scanner/scanner-utils';
+import { APP_VERSION } from '@/lib/app-info';
 import { ensureSerialExcelFolder, saveSerialExcelFile } from '@/lib/serial-excel';
 
 function cx(...classes: Array<string | false | null | undefined>) {
@@ -596,6 +597,9 @@ export default function ScannerPage() {
         >
           {statusMessage}
         </span>
+        <span className={'justify-self-center text-xs font-extrabold text-white/60'}>
+          نسخه <span dir="ltr">v{APP_VERSION}</span>
+        </span>
         {toast && (
           <div
             className={cx(
@@ -684,6 +688,9 @@ export default function ScannerPage() {
             </button>
           </div>
         </form>
+        <span className={'justify-self-center text-xs font-extrabold text-white/60'}>
+          نسخه <span dir="ltr">v{APP_VERSION}</span>
+        </span>
         {toast && (
           <div
             className={cx(
@@ -715,7 +722,7 @@ export default function ScannerPage() {
               'overflow-hidden text-ellipsis whitespace-nowrap text-xs font-extrabold text-app-muted'
             }
           >
-            کاربر جاری: {currentUser?.username ?? '-'}
+            کاربر جاری: {currentUser?.username ?? '-'} / نسخه: <span dir="ltr">v{APP_VERSION}</span>
           </span>
         </div>
         <button

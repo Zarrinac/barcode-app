@@ -6,6 +6,7 @@ import {
   BadgeOutlined,
   DashboardOutlined,
   Delete,
+  Download,
   EditOutlined,
   LoginOutlined,
   Logout,
@@ -58,6 +59,7 @@ import type {
   SessionResponse,
   ViewId,
 } from '@/components/admin/types';
+import { APK_DOWNLOAD_FILENAME, APK_DOWNLOAD_PATH, APP_VERSION } from '@/lib/app-info';
 import { downloadSerialExcelFile } from '@/lib/serial-excel';
 
 const menuItems: Array<{ id: ViewId; label: string; icon: ReactNode }> = [
@@ -862,6 +864,31 @@ export default function Home() {
             </button>
           ))}
         </nav>
+
+        <section
+          className={
+            'mt-auto grid gap-3 rounded-2xl border border-white/10 bg-white/5 p-3.5 text-right shadow-[inset_0_1px_0_rgb(255_255_255/8%)] md:w-1/2 lg:w-full'
+          }
+          aria-label="نسخه برنامه"
+        >
+          <div className={'flex items-center justify-between gap-3 text-sm font-extrabold'}>
+            <span className={'text-white/60'}>نسخه برنامه</span>
+            <span className={'font-black text-white'} dir="ltr">
+              v{APP_VERSION}
+            </span>
+          </div>
+          <a
+            className={cx(
+              'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border-0 px-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-px hover:saturate-[1.08] hover:shadow-xl',
+              'bg-linear-to-br from-dcode-red-500 to-dcode-red-700',
+            )}
+            download={APK_DOWNLOAD_FILENAME}
+            href={APK_DOWNLOAD_PATH}
+          >
+            <Download />
+            دانلود APK
+          </a>
+        </section>
       </aside>
 
       <section className={'flex min-w-0 flex-col gap-4'}>
