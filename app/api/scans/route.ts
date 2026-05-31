@@ -3,6 +3,7 @@ import { MovementType, RecordSource, SerialStatus } from '@prisma/client';
 import { mapProductModel, mapSerialRecord, toPersianDate } from '@/lib/api-mappers';
 import { jsonError, readJsonBody, readString } from '@/lib/api-utils';
 import { prisma } from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +21,17 @@ function getStatus(mode: ScanMode) {
   return mode === 'outbound' ? SerialStatus.EXITED : SerialStatus.REGISTERED;
 }
 
+function isRealTrackingCode(value: string) {
+  return value.trim().toLowerCase() !== 'panel';
+}
+
 export async function POST(request: Request) {
+  const currentUser = await getCurrentUser(request);
+
+  if (!currentUser) {
+    return jsonError('Authentication is required.', 401);
+  }
+
   const body = await readJsonBody(request);
   const barcode = normalizeBarcode(readString(body, 'barcode'));
   const requestedMode = readString(body, 'mode') as ScanMode;
@@ -120,6 +131,29 @@ export async function POST(request: Request) {
   }
 
   const movement = getMovement(mode);
+  const duplicateTrackingCode =
+    contextTrackingCode && isRealTrackingCode(contextTrackingCode)
+      ? await prisma.serialRecord.findFirst({
+          select: {
+            trackingCode: true,
+          },
+          where: {
+            trackingCode: contextTrackingCode,
+          },
+        })
+      : null;
+
+  if (existingSerial?.serialNo === barcode) {
+    return jsonError('شماره سریال قبلا ثبت شده است.', 409);
+  }
+
+  if (
+    existingSerial?.trackingCode === barcode ||
+    duplicateTrackingCode?.trackingCode === contextTrackingCode
+  ) {
+    return jsonError('کد رهگیری قبلا ثبت شده است.', 409);
+  }
+
   const serial = await prisma.serialRecord.create({
     data: {
       docDate: toPersianDate(new Date()),
@@ -134,8 +168,9 @@ export async function POST(request: Request) {
       source: RecordSource.PDA,
       productModelId: activeProduct?.id || existingSerial?.productModelId || null,
       locationId: existingSerial?.locationId || null,
-      createdBy: 'scanner',
-      updatedBy: 'scanner',
+      createdBy: currentUser.username,
+      updatedAt: null,
+      updatedBy: null,
     },
   });
 

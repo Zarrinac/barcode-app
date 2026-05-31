@@ -22,26 +22,20 @@ const users = [
 async function main() {
   const { prisma } = await import('../lib/prisma');
 
-  await prisma.user.deleteMany({
-    where: {
-      username: {
-        notIn: users.map((user) => user.username),
-      },
-    },
-  });
-
   for (const user of users) {
+    const passwordHash = await hashPassword(user.password);
+
     await prisma.user.upsert({
       create: {
         createdBy: 'seed',
-        passwordHash: await hashPassword(user.password),
+        passwordHash,
         role: user.role,
         updatedBy: 'seed',
         username: user.username,
       },
       update: {
         isActive: true,
-        passwordHash: await hashPassword(user.password),
+        passwordHash,
         role: user.role,
         updatedBy: 'seed',
       },

@@ -18,6 +18,7 @@ enum MovementType {
 
 enum SerialStatus {
   REGISTERED
+  EDITED
   EXITED
   CANCELLED
 }
@@ -97,7 +98,7 @@ model SerialRecord {
   legacyFlag     Int                @default(0)
   createdAt      DateTime           @default(now())
   createdBy      String?
-  updatedAt      DateTime           @updatedAt
+  updatedAt      DateTime?
   updatedBy      String?
   productModel   ProductModel?      @relation(fields: [productModelId], references: [id], onDelete: SetNull)
   location       WarehouseLocation? @relation(fields: [locationId], references: [id], onDelete: SetNull)

@@ -18,8 +18,8 @@ export function mapProductModel(model: ProductModel) {
     productCode: model.productCode,
     warrantyCode: model.warrantyCode || '0',
     createdAt: toPersianDate(model.createdAt),
-    updatedAt: toPersianDate(model.updatedAt),
-    status: model.isActive ? 'فعال' : 'غیرفعال',
+    updatedAt: model.legacyFlag === 1 ? toPersianDate(model.updatedAt) : '',
+    status: model.legacyFlag === 1 ? 'ویرایش شده' : 'ثبت شده',
   };
 }
 
@@ -46,9 +46,14 @@ export function mapSerialRecord(serial: SerialRecord) {
     movement: serial.movement === 'OUTBOUND' ? 'خروج' : 'ورود',
     createdAt: toPersianDate(serial.createdAt),
     createdBy: serial.createdBy || '-',
-    updatedAt: toPersianDate(serial.updatedAt),
+    updatedAt: serial.updatedAt ? toPersianDate(serial.updatedAt) : '',
     updatedBy: serial.updatedBy || '-',
-    status: serial.status === 'EXITED' ? 'خروج شده' : 'ثبت شده',
+    status:
+      serial.status === 'EXITED'
+        ? 'خروج شده'
+        : serial.status === 'EDITED'
+          ? 'ویرایش شده'
+          : 'ثبت شده',
   };
 }
 
@@ -59,6 +64,10 @@ export function toPrismaMovement(value: string) {
 export function toPrismaSerialStatus(value: string) {
   if (value === 'خروج شده') {
     return SerialStatus.EXITED;
+  }
+
+  if (value === 'ویرایش شده') {
+    return SerialStatus.EDITED;
   }
 
   if (value === 'لغو شده') {

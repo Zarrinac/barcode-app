@@ -34,7 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="fa" dir="rtl" className="h-full antialiased">
-      <body className="min-h-full max-w-500 flex flex-col mx-auto">
+      <body className="min-h-full max-w-560 flex flex-col mx-auto">
         {children}
         <PwaRegister />
       </body>

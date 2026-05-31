@@ -1,12 +1,23 @@
-import { MovementType } from '@prisma/client';
+import { SerialStatus } from '@prisma/client';
 
-import { mapSerialRecord, toPrismaMovement, toPrismaSerialStatus } from '@/lib/api-mappers';
+import { mapSerialRecord, toPrismaMovement } from '@/lib/api-mappers';
 import { jsonError, parseId, readJsonBody, readString } from '@/lib/api-utils';
 import { prisma } from '@/lib/prisma';
+import { getCurrentUser } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
+function isRealTrackingCode(value: string) {
+  return value.trim().toLowerCase() !== 'panel';
+}
+
 export async function PATCH(request: Request, ctx: RouteContext<'/api/serial-records/[id]'>) {
+  const currentUser = await getCurrentUser(request);
+
+  if (!currentUser) {
+    return jsonError('Authentication is required.', 401);
+  }
+
   const { id: rawId } = await ctx.params;
   const id = parseId(rawId);
 
@@ -22,6 +33,7 @@ export async function PATCH(request: Request, ctx: RouteContext<'/api/serial-rec
   }
 
   const productCode = readString(body, 'productCode');
+  const trackingCode = readString(body, 'trackingCode');
   const product = productCode
     ? await prisma.productModel.findFirst({
         where: { productCode },
@@ -29,6 +41,27 @@ export async function PATCH(request: Request, ctx: RouteContext<'/api/serial-rec
       })
     : null;
   const movement = toPrismaMovement(readString(body, 'movement'));
+  const duplicate = await prisma.serialRecord.findFirst({
+    select: {
+      serialNo: true,
+      trackingCode: true,
+    },
+    where: {
+      id: { not: id },
+      OR: [
+        { serialNo },
+        ...(trackingCode && isRealTrackingCode(trackingCode) ? [{ trackingCode }] : []),
+      ],
+    },
+  });
+
+  if (duplicate?.serialNo === serialNo) {
+    return jsonError('شماره سریال قبلا ثبت شده است.', 409);
+  }
+
+  if (duplicate?.trackingCode === trackingCode) {
+    return jsonError('کد رهگیری قبلا ثبت شده است.', 409);
+  }
 
   const serial = await prisma.serialRecord.update({
     where: { id },
@@ -38,15 +71,14 @@ export async function PATCH(request: Request, ctx: RouteContext<'/api/serial-rec
       customerName: readString(body, 'customerName') || 'انبار مرکزی',
       productCode,
       modelName: readString(body, 'model') || product?.modelName || '',
-      trackingCode: readString(body, 'trackingCode'),
+      trackingCode,
       serialNo,
       movement,
-      status: toPrismaSerialStatus(
-        readString(body, 'status') || (movement === MovementType.OUTBOUND ? 'خروج شده' : 'ثبت شده'),
-      ),
+      status: SerialStatus.EDITED,
       productModelId: product?.id,
       legacyFlag: 1,
-      updatedBy: 'admin',
+      updatedAt: new Date(),
+      updatedBy: currentUser.username,
     },
   });
 

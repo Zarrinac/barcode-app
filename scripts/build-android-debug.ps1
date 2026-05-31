@@ -18,6 +18,27 @@ try {
     throw "Capacitor sync failed with exit code $LASTEXITCODE"
   }
 
+  $androidIconSource = Join-Path $repoRoot 'public\favicon\android'
+  $androidIconTarget = Join-Path $repoRoot 'android\app\src\main\res'
+  $adaptiveForeground = Join-Path $androidIconSource 'adaptive-foreground.png'
+  $launcherDensities = @('mipmap-mdpi', 'mipmap-hdpi', 'mipmap-xhdpi', 'mipmap-xxhdpi', 'mipmap-xxxhdpi')
+
+  foreach ($density in $launcherDensities) {
+    foreach ($iconFile in @('ic_launcher.png', 'ic_launcher_round.png')) {
+      $sourceIcon = Join-Path $androidIconSource "$density\$iconFile"
+      $targetIcon = Join-Path $androidIconTarget "$density\$iconFile"
+
+      if ((Test-Path -LiteralPath $sourceIcon) -and (Test-Path -LiteralPath (Split-Path -Parent $targetIcon))) {
+        Copy-Item -LiteralPath $sourceIcon -Destination $targetIcon -Force
+      }
+    }
+
+    $targetForeground = Join-Path $androidIconTarget "$density\ic_launcher_foreground.png"
+    if ((Test-Path -LiteralPath $adaptiveForeground) -and (Test-Path -LiteralPath (Split-Path -Parent $targetForeground))) {
+      Copy-Item -LiteralPath $adaptiveForeground -Destination $targetForeground -Force
+    }
+  }
+
   $stringsPath = Join-Path $repoRoot 'android\app\src\main\res\values\strings.xml'
   [xml]$stringsXml = Get-Content -LiteralPath $stringsPath
   foreach ($item in $stringsXml.resources.string) {

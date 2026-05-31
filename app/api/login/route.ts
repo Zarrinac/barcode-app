@@ -12,8 +12,6 @@ import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
-const allowedUsernames = new Set(['admin', 'rsf']);
-
 async function readCredentials(request: Request) {
   const contentType = request.headers.get('content-type') ?? '';
 
@@ -84,7 +82,7 @@ export function GET() {
 export async function POST(request: Request) {
   const { password, username } = await readCredentials(request);
 
-  if (!username || !password || !allowedUsernames.has(username)) {
+  if (!username || !password) {
     return invalidLoginResponse(request);
   }
 
