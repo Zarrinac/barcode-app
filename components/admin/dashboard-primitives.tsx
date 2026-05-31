@@ -1,6 +1,6 @@
 'use client';
 
-import { Add, Download, Search, Upload } from '@mui/icons-material';
+import { Add, Download, Search } from '@mui/icons-material';
 import type { ReactNode, Ref } from 'react';
 
 const pageSizeOptions = [20, 50, 100];
@@ -215,17 +215,6 @@ export function Toolbar({
   return (
     <div className="mb-4 flex flex-col items-start justify-between gap-4 md:flex-row md:items-start">
       <div className="flex gap-2 max-md:w-full">
-        <button
-          className={cx(
-            'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border-0 px-4 font-bold text-white shadow-lg transition hover:-translate-y-px hover:saturate-[1.08] hover:shadow-xl disabled:cursor-wait disabled:opacity-70 max-xs:px-3',
-            'bg-linear-to-br from-dcode-red-500 to-dcode-red-700',
-            'max-md:w-full',
-          )}
-          type="button"
-        >
-          <Upload />
-          کپی
-        </button>
         <button
           className={cx(
             'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border-0 px-4 font-bold text-white shadow-lg transition hover:-translate-y-px hover:saturate-[1.08] hover:shadow-xl disabled:cursor-wait disabled:opacity-70 max-xs:px-3',

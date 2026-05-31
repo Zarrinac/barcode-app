@@ -7,7 +7,6 @@ import {
   DashboardOutlined,
   Delete,
   EditOutlined,
-  Inventory2Outlined,
   LoginOutlined,
   Logout,
   QrCodeScanner,
@@ -63,7 +62,6 @@ import { downloadSerialExcelFile } from '@/lib/serial-excel';
 
 const menuItems: Array<{ id: ViewId; label: string; icon: ReactNode }> = [
   { id: 'serial-list', label: 'لیست سریال', icon: <BadgeOutlined /> },
-  { id: 'product-new', label: 'تعریف کالا', icon: <Inventory2Outlined /> },
   { id: 'product-list', label: 'لیست مدل کالا', icon: <TableRowsOutlined /> },
 ];
 
@@ -375,11 +373,6 @@ export default function Home() {
   };
 
   const handleMenuClick = (id: ViewId) => {
-    if (id === 'product-new') {
-      openProductCreate();
-      return;
-    }
-
     setActiveView(id);
   };
 
@@ -694,6 +687,17 @@ export default function Home() {
 
   const exportCsv = (type: 'models' | 'serials') => {
     if (type === 'serials') {
+      const serialSearchQuery = serialSearch.trim();
+      const filteredDocumentNos = Array.from(
+        new Set(filteredSerials.map((item) => item.documentNo.trim()).filter(Boolean)),
+      );
+      const exportFilename =
+        serialSearchQuery &&
+        filteredDocumentNos.length === 1 &&
+        filteredDocumentNos[0] === serialSearchQuery
+          ? filteredDocumentNos[0]
+          : `serials-${Date.now()}`;
+
       downloadSerialExcelFile(
         filteredSerials.map((item) => ({
           date: item.date,
@@ -704,7 +708,7 @@ export default function Home() {
           trackingCode: item.trackingCode,
           serialNo: item.serialNo,
         })),
-        `serials-${Date.now()}`,
+        exportFilename,
       );
       return;
     }
@@ -1333,47 +1337,6 @@ export default function Home() {
               pageSize={serialPageSize}
               total={serials.length}
             />
-          </ContentPanel>
-        )}
-
-        {activeView === 'product-new' && (
-          <ContentPanel
-            title="تعریف کالای جدید"
-            subtitle="ثبت مدل و شناسه کالا از طریق فرم سریع"
-            action={
-              <button
-                className={cx(
-                  'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border-0 px-4 font-extrabold text-white shadow-lg transition hover:-translate-y-px hover:saturate-[1.08] hover:shadow-xl disabled:cursor-wait disabled:opacity-70 max-xs:px-3',
-                  'bg-linear-to-br from-dcode-red-500 to-dcode-red-700',
-                )}
-                onClick={() => setActiveView('product-list')}
-              >
-                مشاهده لیست
-              </button>
-            }
-          >
-            <div
-              className={cx(
-                'grid min-h-80 place-items-center content-center gap-4 rounded-2xl border border-dashed border-dcode-red-500/30 bg-linear-to-b from-app-surface to-app-surface-soft text-center text-dcode-900 max-smd:min-h-56 max-smd:p-4',
-                'mr-auto max-w-140',
-              )}
-            >
-              <Inventory2Outlined className={'size-12! text-dcode-red-500'} />
-              <strong className={'text-lg font-bold'}>
-                فرم تعریف کالا در پنجره جداگانه باز می‌شود.
-              </strong>
-              <button
-                className={cx(
-                  'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border-0 px-4 font-extrabold text-white shadow-lg transition hover:-translate-y-px hover:saturate-[1.08] hover:shadow-xl disabled:cursor-wait disabled:opacity-70 max-xs:px-3',
-                  'bg-linear-to-br from-dcode-red-500 to-dcode-red-700',
-                )}
-                onClick={openProductCreate}
-                type="button"
-              >
-                <Add />
-                مدل جدید
-              </button>
-            </div>
           </ContentPanel>
         )}
 

@@ -1,16 +1,6 @@
 'use client';
 
-import {
-  Close,
-  Delete,
-  Home,
-  Key,
-  Menu,
-  Person,
-  QrCodeScanner,
-  Save,
-  Send,
-} from '@mui/icons-material';
+import { Close, Delete, Home, Key, Person, QrCodeScanner, Save, Send } from '@mui/icons-material';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -717,13 +707,7 @@ export default function ScannerPage() {
           'grid min-h-14 grid-cols-[2.75rem_1fr_2.75rem] items-center rounded-2xl bg-app-surface px-2 shadow-dcode-soft'
         }
       >
-        <button
-          className={'grid place-items-center border-0 bg-transparent text-app-ink'}
-          aria-label="منو"
-          type="button"
-        >
-          <Menu className={'size-7!'} />
-        </button>
+        <div aria-hidden="true" />
         <div className={'grid min-w-0 gap-0.5 text-center'}>
           <h1 className={'m-0 text-2xl font-black leading-tight max-xs:text-2xl'}>اسکن کالا</h1>
           <span
