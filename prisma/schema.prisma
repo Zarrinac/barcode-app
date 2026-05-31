@@ -51,13 +51,13 @@ model ProductModel {
   id           Int            @id @default(autoincrement())
   modelName    String
   productCode  String
-  warrantyCode String         @default("")
+  warrantyCode String?
   isActive     Boolean        @default(true)
   legacyFlag   Int            @default(0)
   source       RecordSource   @default(MANUAL)
   createdAt    DateTime       @default(now())
   createdBy    String?
-  updatedAt    DateTime       @updatedAt
+  updatedAt    DateTime?      @updatedAt
   updatedBy    String?
   serials      SerialRecord[]
 
