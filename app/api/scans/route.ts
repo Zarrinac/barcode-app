@@ -169,11 +169,9 @@ export async function POST(request: Request) {
       movement,
       status: getStatus(mode),
       source: RecordSource.PDA,
-      productModelId: activeProduct?.id || existingSerial?.productModelId || null,
+      productModelId: activeProduct?.id || existingSerial?.productModelId || undefined,
       locationId,
       createdBy: currentUser.username,
-      updatedAt: null,
-      updatedBy: null,
     },
   });
 
