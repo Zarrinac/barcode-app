@@ -4,6 +4,7 @@ import { mapSerialRecord, toPrismaMovement } from '@/lib/api-mappers';
 import { jsonError, readJsonBody, readString } from '@/lib/api-utils';
 import { prisma } from '@/lib/prisma';
 import { getCurrentUser } from '@/lib/session';
+import { getDefaultWarehouseLocationId } from '@/lib/warehouse-location';
 
 export const dynamic = 'force-dynamic';
 
@@ -66,6 +67,8 @@ export async function POST(request: Request) {
     return jsonError('کد رهگیری قبلا ثبت شده است.', 409);
   }
 
+  const locationId = await getDefaultWarehouseLocationId();
+
   const serial = await prisma.serialRecord.create({
     data: {
       docDate: readString(body, 'date'),
@@ -79,6 +82,7 @@ export async function POST(request: Request) {
       status: movement === MovementType.OUTBOUND ? SerialStatus.EXITED : SerialStatus.REGISTERED,
       source: RecordSource.MANUAL,
       productModelId: product?.id,
+      locationId,
       createdBy: currentUser.username,
       updatedAt: null,
       updatedBy: null,
