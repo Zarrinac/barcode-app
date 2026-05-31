@@ -1,4 +1,4 @@
-export type ViewId = 'serial-new' | 'serial-list' | 'product-new' | 'product-list' | 'locations';
+export type ViewId = 'serial-new' | 'serial-list' | 'product-list' | 'locations';
 export type MovementType = 'ورود' | 'خروج';
 export type ScanMode = 'lookup' | 'inbound' | 'outbound';
 export type SerialStatus = 'ثبت شده' | 'ویرایش شده' | 'خروج شده';
