@@ -59,7 +59,13 @@ import type {
   SessionResponse,
   ViewId,
 } from '@/components/admin/types';
-import { APK_DOWNLOAD_FILENAME, APK_DOWNLOAD_PATH, APP_VERSION } from '@/lib/app-info';
+import {
+  APP_VERSION,
+  CAPACITOR_APK_DOWNLOAD_FILENAME,
+  CAPACITOR_APK_DOWNLOAD_PATH,
+  NATIVE_APK_DOWNLOAD_FILENAME,
+  NATIVE_APK_DOWNLOAD_PATH,
+} from '@/lib/app-info';
 import { downloadSerialExcelFile } from '@/lib/serial-excel';
 
 const menuItems: Array<{ id: ViewId; label: string; icon: ReactNode }> = [
@@ -877,17 +883,30 @@ export default function Home() {
               v{APP_VERSION}
             </span>
           </div>
-          <a
-            className={cx(
-              'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border-0 px-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-px hover:saturate-[1.08] hover:shadow-xl',
-              'bg-linear-to-br from-dcode-red-500 to-dcode-red-700',
-            )}
-            download={APK_DOWNLOAD_FILENAME}
-            href={APK_DOWNLOAD_PATH}
-          >
-            <Download />
-            دانلود APK
-          </a>
+          <div className={'grid gap-2'}>
+            <a
+              className={cx(
+                'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border-0 px-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-px hover:saturate-[1.08] hover:shadow-xl',
+                'bg-linear-to-br from-dcode-red-500 to-dcode-red-700',
+              )}
+              download={CAPACITOR_APK_DOWNLOAD_FILENAME}
+              href={CAPACITOR_APK_DOWNLOAD_PATH}
+            >
+              <Download />
+              APK web view
+            </a>
+            <a
+              className={cx(
+                'inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/10 px-3 text-sm font-extrabold text-white shadow-lg transition hover:-translate-y-px hover:saturate-[1.08] hover:shadow-xl',
+                'bg-app-surface/15',
+              )}
+              download={NATIVE_APK_DOWNLOAD_FILENAME}
+              href={NATIVE_APK_DOWNLOAD_PATH}
+            >
+              <Download />
+              APK native
+            </a>
+          </div>
         </section>
       </aside>
 
