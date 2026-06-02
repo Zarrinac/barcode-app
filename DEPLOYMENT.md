@@ -19,6 +19,7 @@ DATABASE_URL="postgresql://barcode_user:change-me@127.0.0.1:5432/barcode_app?sch
 AUTH_SECRET="replace-with-a-long-random-secret-at-least-32-characters"
 AUTH_SESSION_MAX_AGE_SECONDS="28800"
 CAPACITOR_SERVER_URL="http://bcrs.dcode.co.ir/scanner?freshLogin=1"
+BARCODE_API_BASE_URL="http://bcrs.dcode.co.ir"
 ```
 
 `AUTH_SECRET` must stay stable between restarts. Changing it logs all users out.
@@ -89,22 +90,38 @@ server {
 
 If HTTPS is added later, terminate TLS at nginx and update `CAPACITOR_SERVER_URL` to use `https://`.
 
-## Android APK For Real Server
+## Android APKs For Real Server
 
-Set the server URL before building the APK:
+The project has two Android APKs:
+
+- Capacitor wrapper APK: loads the deployed `/scanner` route.
+- Native scanner APK: separate native Android app that calls the same backend API routes directly.
+
+Set both server URLs before building:
 
 ```powershell
 $env:CAPACITOR_SERVER_URL="http://bcrs.dcode.co.ir/scanner?freshLogin=1"
+$env:BARCODE_API_BASE_URL="http://bcrs.dcode.co.ir"
 npm run android:apk
 ```
 
-The app uses Capacitor to open this URL in the Android shell. Because the current URL uses `http://`, Capacitor enables cleartext traffic for the Android build.
+Because the current URLs use `http://`, both Android builds allow cleartext traffic.
 
-The APK will be generated at:
+The debug APKs are generated at:
 
 ```txt
 android/app/build/outputs/apk/debug/app-debug.apk
+android-native/app/build/outputs/apk/debug/app-debug.apk
 ```
+
+The build script also publishes the latest downloadable APKs to:
+
+```txt
+public/downloads/dcode-barcode-latest.apk
+public/downloads/barcode-native.apk
+```
+
+The dashboard download panel links to both files. Re-run `npm run android:apk` whenever either Android app changes so both downloadable files stay current.
 
 For production distribution, create a signed release APK/AAB from Android Studio.
 
