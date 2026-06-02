@@ -1,6 +1,6 @@
 # Barcode Warehouse
 
-A modern warehouse barcode scanning and inventory management system built with Next.js, PostgreSQL, Prisma, and Capacitor.
+A modern warehouse barcode scanning and inventory management system built with Next.js, PostgreSQL, Prisma, Capacitor, and a parallel native Android scanner.
 
 Designed for fast barcode-based workflows, mobile scanning operations, and self-hosted deployments.
 
@@ -14,7 +14,8 @@ Designed for fast barcode-based workflows, mobile scanning operations, and self-
 - Barcode-based inventory workflows
 - Mobile-friendly scanner interface
 - Progressive Web App (PWA) support
-- Android APK support via Capacitor
+- Android APK support via Capacitor wrapper
+- Separate native Android scanner APK
 - PostgreSQL + Prisma backend
 - Authentication system
 - Self-hosted deployment support
@@ -30,6 +31,7 @@ Designed for fast barcode-based workflows, mobile scanning operations, and self-
 - PostgreSQL
 - Prisma ORM
 - Capacitor
+- Native Android
 - PWA
 - Nginx
 
@@ -44,6 +46,8 @@ prisma/              Database schema and migrations
 public/              Static assets
 docs/                Project documentation
 android/             Capacitor Android project
+android-native/      Parallel native Android scanner project
+public/downloads/    Published APK files served by the dashboard
 ```
 
 ---
@@ -129,22 +133,39 @@ For production environments, it is recommended to use a process manager such as 
 
 ---
 
-## Android Application
+## Android Applications
 
-The Android application is built using Capacitor and loads the scanner interface from the deployed web application.
+The project keeps two Android APKs side by side:
 
-### Local APK Build
+- Capacitor wrapper APK: loads the deployed `/scanner` page in the Android shell.
+- Native scanner APK: a separate Android app that calls the same backend APIs directly and does not include the dashboard.
+
+Both APKs can be installed side by side because they use different Android package IDs.
+
+### Build Both APKs
 
 ```bash
 npm run android:apk
 ```
 
-### Build APK Connected to a Remote Server
+After a successful build, both downloadable files are published to:
+
+```txt
+public/downloads/dcode-barcode-latest.apk
+public/downloads/barcode-native.apk
+```
+
+The dashboard download panel exposes both files.
+
+### Build APKs Connected to a Remote Server
 
 ```powershell
 $env:CAPACITOR_SERVER_URL="https://your-domain.com/scanner"
+$env:BARCODE_API_BASE_URL="https://your-domain.com"
 npm run android:apk
 ```
+
+`CAPACITOR_SERVER_URL` is used by the Capacitor wrapper. `BARCODE_API_BASE_URL` is used by the native scanner app for `/api/login`, `/api/session`, `/api/product-models`, `/api/serial-records`, `/api/serial-records/duplicates`, and `/api/scans`.
 
 ---
 
