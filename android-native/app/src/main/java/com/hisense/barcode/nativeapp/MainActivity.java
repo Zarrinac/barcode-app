@@ -730,7 +730,7 @@ public final class MainActivity extends Activity {
                 showToast("شماره سریال " + cleanSerialNo + " در همین سند تکراری است.", true);
                 serialNo = "";
                 renderCollect();
-                serialInput.post(() -> serialInput.requestFocus());
+                focusAfterScannerCommit(serialInput);
                 return;
             }
 
@@ -739,7 +739,7 @@ public final class MainActivity extends Activity {
                 trackingCode = "";
                 serialNo = "";
                 renderCollect();
-                trackingInput.post(() -> trackingInput.requestFocus());
+                focusAfterScannerCommit(trackingInput);
                 return;
             }
         }
@@ -762,8 +762,8 @@ public final class MainActivity extends Activity {
         trackingCode = "panel".equals(acPart) ? "panel" : "";
         serialNo = "";
         renderCollect();
-        View focusTarget = "panel".equals(acPart) ? serialInput : trackingInput;
-        focusTarget.post(focusTarget::requestFocus);
+        EditText focusTarget = "panel".equals(acPart) ? serialInput : trackingInput;
+        focusAfterScannerCommit(focusTarget);
     }
 
     private void sendRows() {
