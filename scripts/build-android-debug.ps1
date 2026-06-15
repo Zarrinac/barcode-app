@@ -22,9 +22,11 @@ Push-Location $repoRoot
 try {
   Write-Host "Using Capacitor server URL: $env:CAPACITOR_SERVER_URL"
   Write-Host "Using native API base URL: $env:BARCODE_API_BASE_URL"
-  & npx.cmd cap sync android
-  if ($LASTEXITCODE -ne 0) {
-    throw "Capacitor sync failed with exit code $LASTEXITCODE"
+  $capSyncOutput = & cmd.exe /d /c "npx.cmd cap sync android" 2>&1
+  $capSyncExitCode = $LASTEXITCODE
+  $capSyncOutput | ForEach-Object { Write-Host $_ }
+  if ($capSyncExitCode -ne 0 -and -not (($capSyncOutput -join "`n") -match 'Sync finished')) {
+    throw "Capacitor sync failed with exit code $capSyncExitCode"
   }
 
   $androidIconSource = Join-Path $repoRoot 'public\favicon\android'

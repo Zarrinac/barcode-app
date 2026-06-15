@@ -1,0 +1,937 @@
+{
+  ".codex/hooks.json": {
+    "mtime": 1781524558.665493,
+    "ast_hash": "67482950a1caf08b0c6238449eee52fd",
+    "semantic_hash": ""
+  },
+  ".husky/_/applypatch-msg": {
+    "mtime": 1778580987.2089443,
+    "ast_hash": "0b71c2e7d39daa010985d529f1320b37",
+    "semantic_hash": ""
+  },
+  ".husky/_/commit-msg": {
+    "mtime": 1778580987.2089443,
+    "ast_hash": "0b71c2e7d39daa010985d529f1320b37",
+    "semantic_hash": ""
+  },
+  ".husky/_/h": {
+    "mtime": 1778580864.974682,
+    "ast_hash": "15239a01c5554e56ff745570fb583a91",
+    "semantic_hash": ""
+  },
+  ".husky/_/husky.sh": {
+    "mtime": 1778580987.2089443,
+    "ast_hash": "13871d2ab13e8423790ecb2c01c78c18",
+    "semantic_hash": ""
+  },
+  ".husky/_/post-applypatch": {
+    "mtime": 1778580987.2089443,
+    "ast_hash": "0b71c2e7d39daa010985d529f1320b37",
+    "semantic_hash": ""
+  },
+  ".husky/_/post-checkout": {
+    "mtime": 1778580987.2089443,
+    "ast_hash": "0b71c2e7d39daa010985d529f1320b37",
+    "semantic_hash": ""
+  },
+  ".husky/_/post-commit": {
+    "mtime": 1778580987.2089443,
+    "ast_hash": "0b71c2e7d39daa010985d529f1320b37",
+    "semantic_hash": ""
+  },
+  ".husky/_/post-merge": {
+    "mtime": 1778580987.2089443,
+    "ast_hash": "0b71c2e7d39daa010985d529f1320b37",
+    "semantic_hash": ""
+  },
+  ".husky/_/post-rewrite": {
+    "mtime": 1778580987.2089443,
+    "ast_hash": "0b71c2e7d39daa010985d529f1320b37",
+    "semantic_hash": ""
+  },
+  ".husky/_/pre-applypatch": {
+    "mtime": 1778580987.2089443,
+    "ast_hash": "0b71c2e7d39daa010985d529f1320b37",
+    "semantic_hash": ""
+  },
+  ".husky/_/pre-auto-gc": {
+    "mtime": 1778580987.2089443,
+    "ast_hash": "0b71c2e7d39daa010985d529f1320b37",
+    "semantic_hash": ""
+  },
+  ".husky/_/pre-commit": {
+    "mtime": 1778580987.2089443,
+    "ast_hash": "0b71c2e7d39daa010985d529f1320b37",
+    "semantic_hash": ""
+  },
+  ".husky/_/pre-merge-commit": {
+    "mtime": 1778580987.2089443,
+    "ast_hash": "0b71c2e7d39daa010985d529f1320b37",
+    "semantic_hash": ""
+  },
+  ".husky/_/pre-push": {
+    "mtime": 1778580987.2089443,
+    "ast_hash": "0b71c2e7d39daa010985d529f1320b37",
+    "semantic_hash": ""
+  },
+  ".husky/_/pre-rebase": {
+    "mtime": 1778580987.2089443,
+    "ast_hash": "0b71c2e7d39daa010985d529f1320b37",
+    "semantic_hash": ""
+  },
+  ".husky/_/prepare-commit-msg": {
+    "mtime": 1778580987.2089443,
+    "ast_hash": "0b71c2e7d39daa010985d529f1320b37",
+    "semantic_hash": ""
+  },
+  ".husky/post-checkout": {
+    "mtime": 1781524572.0692527,
+    "ast_hash": "f7739deba043c0e66823f31888071619",
+    "semantic_hash": ""
+  },
+  ".husky/post-commit": {
+    "mtime": 1781524572.0536478,
+    "ast_hash": "445b56d971a6c2c2549b5259f0aa3cfe",
+    "semantic_hash": ""
+  },
+  ".husky/pre-commit": {
+    "mtime": 1777897219.9416206,
+    "ast_hash": "cfa56f17f3aa37495ffbdda5ba9f6ccf",
+    "semantic_hash": ""
+  },
+  ".vscode/settings.json": {
+    "mtime": 1779625273.2300985,
+    "ast_hash": "62ac495c992fc99e4de1b755b9e51c98",
+    "semantic_hash": ""
+  },
+  "android-native/app/build.gradle": {
+    "mtime": 1781527882.4925928,
+    "ast_hash": "e6c3540242bb394e0c10e0921a8f7f4d",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/java/com/hisense/barcode/nativeapp/ApiClient.java": {
+    "mtime": 1780382987.96115,
+    "ast_hash": "60a17dd39222a4edf340b74023cdcae4",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/java/com/hisense/barcode/nativeapp/ExcelExporter.java": {
+    "mtime": 1780388126.5204165,
+    "ast_hash": "5e66839b005c3f8d78995b9c98474f13",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/java/com/hisense/barcode/nativeapp/MainActivity.java": {
+    "mtime": 1781526647.4493294,
+    "ast_hash": "2c326d7965c8dd2d1fc67d57853c64d8",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/java/com/hisense/barcode/nativeapp/PersianDate.java": {
+    "mtime": 1780382605.8124597,
+    "ast_hash": "c834b9de8d24fbc21fdec54f628e389c",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/java/com/hisense/barcode/nativeapp/ProductModel.java": {
+    "mtime": 1780382605.8091836,
+    "ast_hash": "45710677436fb6f80f420a190fba091f",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/java/com/hisense/barcode/nativeapp/ScanRow.java": {
+    "mtime": 1780382605.81146,
+    "ast_hash": "55efa731ca8b8e8f259ec0bdad7c3466",
+    "semantic_hash": ""
+  },
+  "android-native/build.gradle": {
+    "mtime": 1780382399.9688377,
+    "ast_hash": "b62b3b33b6a30e5b91a28170c581bb29",
+    "semantic_hash": ""
+  },
+  "android-native/gradlew": {
+    "mtime": 1779538971.310761,
+    "ast_hash": "f2d3d383787f61a4a99710ee8d780434",
+    "semantic_hash": ""
+  },
+  "android-native/settings.gradle": {
+    "mtime": 1780382399.9668362,
+    "ast_hash": "6eee1bef994508375373cb2929f87eee",
+    "semantic_hash": ""
+  },
+  "android/app/build.gradle": {
+    "mtime": 1781527882.4925928,
+    "ast_hash": "2518af82e5344eb9cbfd61f47454b75b",
+    "semantic_hash": ""
+  },
+  "android/app/capacitor.build.gradle": {
+    "mtime": 1781527967.4227748,
+    "ast_hash": "4681ac226cb4221ea8c2deb1ba20d8e1",
+    "semantic_hash": ""
+  },
+  "android/app/src/androidTest/java/com/getcapacitor/myapp/ExampleInstrumentedTest.java": {
+    "mtime": 1779538971.2708957,
+    "ast_hash": "c777a4127ae7213f7da22c4105bdfeab",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/assets/capacitor.config.json": {
+    "mtime": 1781527967.292618,
+    "ast_hash": "3af73089ebe3d43c0eebb60fe385c432",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/assets/capacitor.plugins.json": {
+    "mtime": 1781527967.393129,
+    "ast_hash": "5fcac1e5c9e440c6b011e7a6d7366ee2",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/assets/public/cordova.js": {
+    "mtime": 1781527967.417775,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/assets/public/cordova_plugins.js": {
+    "mtime": 1781527967.4187753,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/java/com/hisense/barcode/MainActivity.java": {
+    "mtime": 1779538971.2748957,
+    "ast_hash": "9811214c608723f3a35bf85c6364dbd6",
+    "semantic_hash": ""
+  },
+  "android/app/src/test/java/com/getcapacitor/myapp/ExampleUnitTest.java": {
+    "mtime": 1779538971.310761,
+    "ast_hash": "3f8a2768101e4de10f606ea4516fd339",
+    "semantic_hash": ""
+  },
+  "android/build.gradle": {
+    "mtime": 1779538971.310761,
+    "ast_hash": "ca5f0fa0ea4c3997363777d8a2b6467b",
+    "semantic_hash": ""
+  },
+  "android/capacitor-cordova-android-plugins/build.gradle": {
+    "mtime": 1781527967.424775,
+    "ast_hash": "2af61653d70c95d20802c8b5c433ba90",
+    "semantic_hash": ""
+  },
+  "android/capacitor-cordova-android-plugins/cordova.variables.gradle": {
+    "mtime": 1781527967.4257758,
+    "ast_hash": "d2372a0ae9aa60abb8d03e7f06bf9194",
+    "semantic_hash": ""
+  },
+  "android/capacitor.settings.gradle": {
+    "mtime": 1781527967.4227748,
+    "ast_hash": "4f395c9f9cf59831e99873a19ab96de7",
+    "semantic_hash": ""
+  },
+  "android/gradlew": {
+    "mtime": 1779538971.310761,
+    "ast_hash": "f2d3d383787f61a4a99710ee8d780434",
+    "semantic_hash": ""
+  },
+  "android/settings.gradle": {
+    "mtime": 1779538971.3265269,
+    "ast_hash": "c609df618dbeec637255380c9f707ccf",
+    "semantic_hash": ""
+  },
+  "android/variables.gradle": {
+    "mtime": 1779538971.3265269,
+    "ast_hash": "32293aeff620cc10298866858c22ddc9",
+    "semantic_hash": ""
+  },
+  "app/api/bootstrap/route.ts": {
+    "mtime": 1779538971.3265269,
+    "ast_hash": "9aee1cde22d293c579c9825bdf63e706",
+    "semantic_hash": ""
+  },
+  "app/api/locations/[id]/route.ts": {
+    "mtime": 1779538971.3265269,
+    "ast_hash": "4ff41cb82450a035cb93396d53069513",
+    "semantic_hash": ""
+  },
+  "app/api/locations/route.ts": {
+    "mtime": 1779538971.3265269,
+    "ast_hash": "13371f7d5af973410cbaa7dac1830580",
+    "semantic_hash": ""
+  },
+  "app/api/login/route.ts": {
+    "mtime": 1779711695.4451733,
+    "ast_hash": "a3070a1221579bb102e59fb9779ef7ba",
+    "semantic_hash": ""
+  },
+  "app/api/logout/route.ts": {
+    "mtime": 1779538971.3265269,
+    "ast_hash": "93ae1be1e2ef237a137489fc8ba47be8",
+    "semantic_hash": ""
+  },
+  "app/api/product-models/[id]/route.ts": {
+    "mtime": 1780140686.2663913,
+    "ast_hash": "7437d0daa285e736b6556e748b638a2a",
+    "semantic_hash": ""
+  },
+  "app/api/product-models/route.ts": {
+    "mtime": 1780140981.5396588,
+    "ast_hash": "f81780343ae7fbff5fa84c4e3cad8f82",
+    "semantic_hash": ""
+  },
+  "app/api/scans/route.ts": {
+    "mtime": 1780218436.308234,
+    "ast_hash": "e230d531693846a425b572271839163b",
+    "semantic_hash": ""
+  },
+  "app/api/serial-records/[id]/route.ts": {
+    "mtime": 1780212444.6601639,
+    "ast_hash": "385f04735c8932ecfaf43bd67d091170",
+    "semantic_hash": ""
+  },
+  "app/api/serial-records/duplicates/route.ts": {
+    "mtime": 1780128824.3826537,
+    "ast_hash": "cdfc1892decc0de8c2f261263cb50b13",
+    "semantic_hash": ""
+  },
+  "app/api/serial-records/route.ts": {
+    "mtime": 1780218436.3072338,
+    "ast_hash": "3b11f38b28987dd26e0939151c127359",
+    "semantic_hash": ""
+  },
+  "app/api/session/route.ts": {
+    "mtime": 1779711780.0756965,
+    "ast_hash": "458e91d5de56b0a2798d2ec66e771c4b",
+    "semantic_hash": ""
+  },
+  "app/api/users/[id]/route.ts": {
+    "mtime": 1779538971.342353,
+    "ast_hash": "5b184882693a9ed5c53882a84fe45676",
+    "semantic_hash": ""
+  },
+  "app/api/users/route.ts": {
+    "mtime": 1779538971.342353,
+    "ast_hash": "fe5fa94df089d13d03eecdf1f95cd905",
+    "semantic_hash": ""
+  },
+  "app/layout.tsx": {
+    "mtime": 1780125852.2376728,
+    "ast_hash": "c0dd4b121c124af7052656ad9f39d06e",
+    "semantic_hash": ""
+  },
+  "app/manifest.ts": {
+    "mtime": 1779611833.3919444,
+    "ast_hash": "7c3a7ec0135ce993d9fedc8110ac4c48",
+    "semantic_hash": ""
+  },
+  "app/page.tsx": {
+    "mtime": 1779689111.1403697,
+    "ast_hash": "de33ad4cc7bf6253585aa7d9f86df688",
+    "semantic_hash": ""
+  },
+  "app/pwa-register.tsx": {
+    "mtime": 1779538971.3593023,
+    "ast_hash": "22f9e3e38ad33b3ae9ddf3f5d793258d",
+    "semantic_hash": ""
+  },
+  "app/scanner/page.tsx": {
+    "mtime": 1779703303.5279186,
+    "ast_hash": "a59946e73892fc24eaefc9cebac1cac9",
+    "semantic_hash": ""
+  },
+  "capacitor.config.ts": {
+    "mtime": 1780228145.4657261,
+    "ast_hash": "64f92db808e4c05caf70e8ad9446fb2f",
+    "semantic_hash": ""
+  },
+  "components/admin/admin-dashboard.tsx": {
+    "mtime": 1780913189.6613045,
+    "ast_hash": "78a5baca237916bfb8b536d4af7560b4",
+    "semantic_hash": ""
+  },
+  "components/admin/dashboard-primitives.tsx": {
+    "mtime": 1780221487.6982374,
+    "ast_hash": "e1a3128adfc7cd32e42e17c97b975f32",
+    "semantic_hash": ""
+  },
+  "components/admin/persian-date-field.tsx": {
+    "mtime": 1779702197.0624056,
+    "ast_hash": "68ad94275a4f71386f4ea654b86b01c9",
+    "semantic_hash": ""
+  },
+  "components/admin/persian-date.ts": {
+    "mtime": 1779689226.3464694,
+    "ast_hash": "3abd5c9bd121eef60681a247e0e2b462",
+    "semantic_hash": ""
+  },
+  "components/admin/sample-data.ts": {
+    "mtime": 1780140619.536182,
+    "ast_hash": "1a0ab9a2b570ab089b28a827169fc175",
+    "semantic_hash": ""
+  },
+  "components/admin/types.ts": {
+    "mtime": 1780221520.3748229,
+    "ast_hash": "f8110e64b95a055a437e28c4f9d24d3a",
+    "semantic_hash": ""
+  },
+  "components/scanner/scanner-page.tsx": {
+    "mtime": 1780228458.6487205,
+    "ast_hash": "a6983a6813af8a09efe477ac2721f0cf",
+    "semantic_hash": ""
+  },
+  "components/scanner/scanner-types.ts": {
+    "mtime": 1780128802.3524034,
+    "ast_hash": "fbcb91734797677f519034d473ddc870",
+    "semantic_hash": ""
+  },
+  "components/scanner/scanner-utils.ts": {
+    "mtime": 1780132573.9110832,
+    "ast_hash": "e8afdb441751264834654bfd06b879ad",
+    "semantic_hash": ""
+  },
+  "eslint.config.mjs": {
+    "mtime": 1777897672.3499355,
+    "ast_hash": "b33a0aef23ecb741a3d12f8481b9050b",
+    "semantic_hash": ""
+  },
+  "lib/api-mappers.ts": {
+    "mtime": 1780212480.9269044,
+    "ast_hash": "3107aaae26e129a9234bd833caf076f7",
+    "semantic_hash": ""
+  },
+  "lib/api-utils.ts": {
+    "mtime": 1779538971.371453,
+    "ast_hash": "1c3d816c5f6eb31f74fd5b8835665eb4",
+    "semantic_hash": ""
+  },
+  "lib/app-info.ts": {
+    "mtime": 1780400761.3282893,
+    "ast_hash": "b4c910098afa5278d1f9d2a132793d69",
+    "semantic_hash": ""
+  },
+  "lib/auth.ts": {
+    "mtime": 1779538971.372453,
+    "ast_hash": "c7e9dcf62191fa1226fe7bc9200ad27f",
+    "semantic_hash": ""
+  },
+  "lib/prisma.ts": {
+    "mtime": 1779538971.3734531,
+    "ast_hash": "6c734705dff90b71ab405376df186ea0",
+    "semantic_hash": ""
+  },
+  "lib/serial-excel.ts": {
+    "mtime": 1779538971.375453,
+    "ast_hash": "71a2befc0479cdd857f9d5f6c13320d3",
+    "semantic_hash": ""
+  },
+  "lib/session.ts": {
+    "mtime": 1779711695.4451733,
+    "ast_hash": "f373d267c0357f799f491fec37707dc4",
+    "semantic_hash": ""
+  },
+  "lib/warehouse-location.ts": {
+    "mtime": 1780217275.344572,
+    "ast_hash": "3940bbb97fdeb6fdf84dfb6328c58355",
+    "semantic_hash": ""
+  },
+  "next.config.ts": {
+    "mtime": 1779538971.376453,
+    "ast_hash": "7f310bc47d3bd67a17f0faaf40c35772",
+    "semantic_hash": ""
+  },
+  "package.json": {
+    "mtime": 1781527882.4925928,
+    "ast_hash": "4d6c04929ae7484152c34f0c8b45fee5",
+    "semantic_hash": ""
+  },
+  "postcss.config.mjs": {
+    "mtime": 1777897688.774677,
+    "ast_hash": "f4e93057c0189a2398d312d3000cb51d",
+    "semantic_hash": ""
+  },
+  "prisma.config.ts": {
+    "mtime": 1779538971.3820803,
+    "ast_hash": "ea47c56cd19fe88aa6bc4b483f4a1ffc",
+    "semantic_hash": ""
+  },
+  "public/sw.js": {
+    "mtime": 1779611833.536701,
+    "ast_hash": "f50aad01eb9bfe5404b573b968a42266",
+    "semantic_hash": ""
+  },
+  "scripts/build-android-debug.ps1": {
+    "mtime": 1781527960.1156642,
+    "ast_hash": "06de1c8884433e2e6b331ded0de62c12",
+    "semantic_hash": ""
+  },
+  "scripts/check-production-readiness.ts": {
+    "mtime": 1779711909.1415238,
+    "ast_hash": "13510118487639338f828cce4945a466",
+    "semantic_hash": ""
+  },
+  "scripts/import-legacy-sample.ts": {
+    "mtime": 1779538971.443813,
+    "ast_hash": "2911da7e6441797f480639e70e9c24f2",
+    "semantic_hash": ""
+  },
+  "scripts/install-android-debug.ps1": {
+    "mtime": 1779538971.443813,
+    "ast_hash": "8ba28a08261154365263d077f85f5442",
+    "semantic_hash": ""
+  },
+  "scripts/seed-auth-users.ts": {
+    "mtime": 1781075672.8948896,
+    "ast_hash": "b9ae03543abe4fe61183f94a86956a70",
+    "semantic_hash": ""
+  },
+  "tailwind.config.ts": {
+    "mtime": 1777897219.9376202,
+    "ast_hash": "1adc2e20ca03dfafeed18629cdd59a6c",
+    "semantic_hash": ""
+  },
+  "tsconfig.json": {
+    "mtime": 1777897219.9396253,
+    "ast_hash": "fa73cd5c37f1beed178559ead76f4fc5",
+    "semantic_hash": ""
+  },
+  "AGENTS.md": {
+    "mtime": 1781524558.6577868,
+    "ast_hash": "f1dea2606675243415cea2a796520a41",
+    "semantic_hash": ""
+  },
+  "CLAUDE.md": {
+    "mtime": 1777882857.0944247,
+    "ast_hash": "5c27369b226fcf2be8a6cfe52224e767",
+    "semantic_hash": ""
+  },
+  "DEPLOYMENT.md": {
+    "mtime": 1780401775.371389,
+    "ast_hash": "7a9c98b3f449f3adf91083418005b27f",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1780400792.0484111,
+    "ast_hash": "d58e344616e9e64d9b8e04545ea58874",
+    "semantic_hash": ""
+  },
+  "android-native/README.md": {
+    "mtime": 1780383125.5039363,
+    "ast_hash": "db46041901416d9e97828fcddcb43536",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/assets/public/index.html": {
+    "mtime": 1779538971.364453,
+    "ast_hash": "78b8eff84661e5690195f8693caca05a",
+    "semantic_hash": ""
+  },
+  "capacitor-www/index.html": {
+    "mtime": 1779538971.364453,
+    "ast_hash": "78b8eff84661e5690195f8693caca05a",
+    "semantic_hash": ""
+  },
+  "docs/OPERATOR_GUIDE_EN.md": {
+    "mtime": 1779610793.1533735,
+    "ast_hash": "6861c6382c307aa7392dd384fa1c1ef8",
+    "semantic_hash": ""
+  },
+  "docs/OPERATOR_GUIDE_FA.md": {
+    "mtime": 1779610793.1683745,
+    "ast_hash": "cbbd6a0650eacd974110b6ca88b908c9",
+    "semantic_hash": ""
+  },
+  "docs/TECHNICAL_DOCUMENTATION_EN.md": {
+    "mtime": 1779610793.1863756,
+    "ast_hash": "ed18f245c9dcd0cc40f02c9bec513832",
+    "semantic_hash": ""
+  },
+  "docs/TECHNICAL_DOCUMENTATION_FA.md": {
+    "mtime": 1779610793.2023747,
+    "ast_hash": "70deb893f180df9d6e5fc012ad2c55e8",
+    "semantic_hash": ""
+  },
+  "public/favicon/DCode-palette.txt": {
+    "mtime": 1779597610.0,
+    "ast_hash": "34c772fe1f6ecba1e3cff8490ad28372",
+    "semantic_hash": ""
+  },
+  "public/favicon/README.txt": {
+    "mtime": 1779597610.0,
+    "ast_hash": "dfb4d50a69e9e6c0f35632cd610b287d",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/res/drawable-nodpi/dcode_wordmark.png": {
+    "mtime": 1780387988.948,
+    "ast_hash": "990d98f4a9af6b9cc59a550096fc6f5d",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/res/mipmap-hdpi/ic_launcher.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "d31c5e656d15e1554b7887ade4bb82ab",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png": {
+    "mtime": 1780136681.2956064,
+    "ast_hash": "e91104fb6b5fc8250167f9331d921628",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/res/mipmap-hdpi/ic_launcher_round.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "d31c5e656d15e1554b7887ade4bb82ab",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/res/mipmap-mdpi/ic_launcher.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "c63b9733721545af6d45a5a49fb772d0",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png": {
+    "mtime": 1780136681.2956064,
+    "ast_hash": "e91104fb6b5fc8250167f9331d921628",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/res/mipmap-mdpi/ic_launcher_round.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "c63b9733721545af6d45a5a49fb772d0",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/res/mipmap-xhdpi/ic_launcher.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "dd1145967a175e8dac62fd1e0d59de31",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png": {
+    "mtime": 1780136681.2956064,
+    "ast_hash": "e91104fb6b5fc8250167f9331d921628",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "dd1145967a175e8dac62fd1e0d59de31",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/res/mipmap-xxhdpi/ic_launcher.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "450a21c5b98f7248174dad52d63fae73",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png": {
+    "mtime": 1780136681.2956064,
+    "ast_hash": "e91104fb6b5fc8250167f9331d921628",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "450a21c5b98f7248174dad52d63fae73",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "5600a3f243638840726d0e98802b954d",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png": {
+    "mtime": 1780136681.2956064,
+    "ast_hash": "e91104fb6b5fc8250167f9331d921628",
+    "semantic_hash": ""
+  },
+  "android-native/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "5600a3f243638840726d0e98802b954d",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/drawable-land-hdpi/splash.png": {
+    "mtime": 1779538971.2758956,
+    "ast_hash": "f7a80786dd355bd39014e58027aa6e19",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/drawable-land-mdpi/splash.png": {
+    "mtime": 1779538971.2768967,
+    "ast_hash": "acc976d4a36479233371a53021525c0c",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/drawable-land-xhdpi/splash.png": {
+    "mtime": 1779538971.2788959,
+    "ast_hash": "b8c72969bc1f78aab71a76035360d4af",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/drawable-land-xxhdpi/splash.png": {
+    "mtime": 1779538971.2788959,
+    "ast_hash": "f87e988387b07d843905f38b084929fb",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/drawable-land-xxxhdpi/splash.png": {
+    "mtime": 1779538971.2788959,
+    "ast_hash": "055a69553b16b0bf5f72094a2e459fc7",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/drawable-port-hdpi/splash.png": {
+    "mtime": 1779538971.2788959,
+    "ast_hash": "5eb10d16c81338abe8bbc033d49638a8",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/drawable-port-mdpi/splash.png": {
+    "mtime": 1779538971.2788959,
+    "ast_hash": "d855a76a5070c8e6fcfd83a27549bdce",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/drawable-port-xhdpi/splash.png": {
+    "mtime": 1779538971.2788959,
+    "ast_hash": "df100b2a36bdb98b711cca58941728de",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/drawable-port-xxhdpi/splash.png": {
+    "mtime": 1779538971.2788959,
+    "ast_hash": "2c1b668364e815256f67b71dcdfa4d6e",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/drawable-port-xxxhdpi/splash.png": {
+    "mtime": 1779538971.2788959,
+    "ast_hash": "b5b1b22b59abe686c1df0d74a423d034",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/drawable/splash.png": {
+    "mtime": 1779538971.2788959,
+    "ast_hash": "acc976d4a36479233371a53021525c0c",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-hdpi/ic_launcher.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "d31c5e656d15e1554b7887ade4bb82ab",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-hdpi/ic_launcher_foreground.png": {
+    "mtime": 1780136681.2956064,
+    "ast_hash": "e91104fb6b5fc8250167f9331d921628",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-hdpi/ic_launcher_round.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "d31c5e656d15e1554b7887ade4bb82ab",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-mdpi/ic_launcher.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "c63b9733721545af6d45a5a49fb772d0",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-mdpi/ic_launcher_foreground.png": {
+    "mtime": 1780136681.2956064,
+    "ast_hash": "e91104fb6b5fc8250167f9331d921628",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-mdpi/ic_launcher_round.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "c63b9733721545af6d45a5a49fb772d0",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-xhdpi/ic_launcher.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "dd1145967a175e8dac62fd1e0d59de31",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-xhdpi/ic_launcher_foreground.png": {
+    "mtime": 1780136681.2956064,
+    "ast_hash": "e91104fb6b5fc8250167f9331d921628",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-xhdpi/ic_launcher_round.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "dd1145967a175e8dac62fd1e0d59de31",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-xxhdpi/ic_launcher.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "450a21c5b98f7248174dad52d63fae73",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-xxhdpi/ic_launcher_foreground.png": {
+    "mtime": 1780136681.2956064,
+    "ast_hash": "e91104fb6b5fc8250167f9331d921628",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "450a21c5b98f7248174dad52d63fae73",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "5600a3f243638840726d0e98802b954d",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_foreground.png": {
+    "mtime": 1780136681.2956064,
+    "ast_hash": "e91104fb6b5fc8250167f9331d921628",
+    "semantic_hash": ""
+  },
+  "android/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "5600a3f243638840726d0e98802b954d",
+    "semantic_hash": ""
+  },
+  "app/apple-icon.png": {
+    "mtime": 1779597608.0,
+    "ast_hash": "24c84f03a0ddf7643638999620f00e4a",
+    "semantic_hash": ""
+  },
+  "app/icon.png": {
+    "mtime": 1779597608.0,
+    "ast_hash": "0f77c37eaba3ac0a9d74546a2e17ebe4",
+    "semantic_hash": ""
+  },
+  "public/dcode-logo-SVG.svg": {
+    "mtime": 1779605127.4749825,
+    "ast_hash": "31ebf0de6ad6e1a5087829af32eb3d59",
+    "semantic_hash": ""
+  },
+  "public/favicon/android/adaptive-background.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "14c98dff7f1c7445eeeb52a44365108f",
+    "semantic_hash": ""
+  },
+  "public/favicon/android/adaptive-foreground.png": {
+    "mtime": 1780136681.2956064,
+    "ast_hash": "e91104fb6b5fc8250167f9331d921628",
+    "semantic_hash": ""
+  },
+  "public/favicon/android/mipmap-hdpi/ic_launcher.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "d31c5e656d15e1554b7887ade4bb82ab",
+    "semantic_hash": ""
+  },
+  "public/favicon/android/mipmap-hdpi/ic_launcher_round.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "d31c5e656d15e1554b7887ade4bb82ab",
+    "semantic_hash": ""
+  },
+  "public/favicon/android/mipmap-mdpi/ic_launcher.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "c63b9733721545af6d45a5a49fb772d0",
+    "semantic_hash": ""
+  },
+  "public/favicon/android/mipmap-mdpi/ic_launcher_round.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "c63b9733721545af6d45a5a49fb772d0",
+    "semantic_hash": ""
+  },
+  "public/favicon/android/mipmap-xhdpi/ic_launcher.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "dd1145967a175e8dac62fd1e0d59de31",
+    "semantic_hash": ""
+  },
+  "public/favicon/android/mipmap-xhdpi/ic_launcher_round.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "dd1145967a175e8dac62fd1e0d59de31",
+    "semantic_hash": ""
+  },
+  "public/favicon/android/mipmap-xxhdpi/ic_launcher.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "450a21c5b98f7248174dad52d63fae73",
+    "semantic_hash": ""
+  },
+  "public/favicon/android/mipmap-xxhdpi/ic_launcher_round.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "450a21c5b98f7248174dad52d63fae73",
+    "semantic_hash": ""
+  },
+  "public/favicon/android/mipmap-xxxhdpi/ic_launcher.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "5600a3f243638840726d0e98802b954d",
+    "semantic_hash": ""
+  },
+  "public/favicon/android/mipmap-xxxhdpi/ic_launcher_round.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "5600a3f243638840726d0e98802b954d",
+    "semantic_hash": ""
+  },
+  "public/favicon/android/play-store-icon-512.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "01e97fa4002bdcb5ff510c23befceb2c",
+    "semantic_hash": ""
+  },
+  "public/favicon/apple-icon.png": {
+    "mtime": 1779597608.0,
+    "ast_hash": "24c84f03a0ddf7643638999620f00e4a",
+    "semantic_hash": ""
+  },
+  "public/favicon/icon-1024.png": {
+    "mtime": 1779597608.0,
+    "ast_hash": "0f77c37eaba3ac0a9d74546a2e17ebe4",
+    "semantic_hash": ""
+  },
+  "public/favicon/icon-192.png": {
+    "mtime": 1779597608.0,
+    "ast_hash": "5600a3f243638840726d0e98802b954d",
+    "semantic_hash": ""
+  },
+  "public/favicon/icon-512.png": {
+    "mtime": 1779597608.0,
+    "ast_hash": "01e97fa4002bdcb5ff510c23befceb2c",
+    "semantic_hash": ""
+  },
+  "public/favicon/nextjs-app-assets/apple-icon.png": {
+    "mtime": 1779597608.0,
+    "ast_hash": "24c84f03a0ddf7643638999620f00e4a",
+    "semantic_hash": ""
+  },
+  "public/favicon/nextjs-app-assets/icon-192.png": {
+    "mtime": 1779597608.0,
+    "ast_hash": "5600a3f243638840726d0e98802b954d",
+    "semantic_hash": ""
+  },
+  "public/favicon/nextjs-app-assets/icon-512.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "01e97fa4002bdcb5ff510c23befceb2c",
+    "semantic_hash": ""
+  },
+  "public/favicon/nextjs-app-assets/icon.png": {
+    "mtime": 1779597608.0,
+    "ast_hash": "0f77c37eaba3ac0a9d74546a2e17ebe4",
+    "semantic_hash": ""
+  },
+  "public/favicon/source/barcode-mark-transparent.png": {
+    "mtime": 1779597608.0,
+    "ast_hash": "19a9e310f277d3c04c0eb6cf08aa453f",
+    "semantic_hash": ""
+  },
+  "public/favicon/source/dcode-wordmark-light.png": {
+    "mtime": 1779597608.0,
+    "ast_hash": "d3a63b4f733b3a894027adb96528fb0c",
+    "semantic_hash": ""
+  },
+  "public/favicon/source/icon-master-symbol-only-1024.png": {
+    "mtime": 1779597606.0,
+    "ast_hash": "400376e5f0e0a09a306389c8cc0810d8",
+    "semantic_hash": ""
+  },
+  "public/favicon/source/icon-master-with-wordmark-1024.png": {
+    "mtime": 1779597608.0,
+    "ast_hash": "0f77c37eaba3ac0a9d74546a2e17ebe4",
+    "semantic_hash": ""
+  },
+  "public/favicon/web/apple-touch-icon.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "24c84f03a0ddf7643638999620f00e4a",
+    "semantic_hash": ""
+  },
+  "public/favicon/web/favicon-16x16.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "622504efca18c50827f9e05ebbf1af6c",
+    "semantic_hash": ""
+  },
+  "public/favicon/web/favicon-32x32.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "4127d1b9ff5d734578027d7267d19452",
+    "semantic_hash": ""
+  },
+  "public/favicon/web/favicon-48x48.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "0ac11876aa7b37ed4170f2d600584eb1",
+    "semantic_hash": ""
+  },
+  "public/favicon/web/favicon-64x64.png": {
+    "mtime": 1779597610.0,
+    "ast_hash": "b3d868a6bbe6953ed4898bb5bb04a912",
+    "semantic_hash": ""
+  },
+  "public/icons/icon-192.png": {
+    "mtime": 1779597608.0,
+    "ast_hash": "5600a3f243638840726d0e98802b954d",
+    "semantic_hash": ""
+  },
+  "public/icons/icon-512.png": {
+    "mtime": 1779597608.0,
+    "ast_hash": "01e97fa4002bdcb5ff510c23befceb2c",
+    "semantic_hash": ""
+  }
+}
