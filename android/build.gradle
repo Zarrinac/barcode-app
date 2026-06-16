@@ -24,6 +24,23 @@ allprojects {
     }
 }
 
+subprojects { subproject ->
+    if (subproject.name.startsWith('capacitor')) {
+        subproject.tasks.withType(JavaCompile).configureEach {
+            options.warnings = false
+            options.compilerArgs += ['-Xlint:none']
+        }
+
+        subproject.tasks.configureEach { task ->
+            if (task.class.name == 'org.jetbrains.kotlin.gradle.tasks.KotlinCompile') {
+                task.kotlinOptions {
+                    suppressWarnings = true
+                }
+            }
+        }
+    }
+}
+
 task clean(type: Delete) {
     delete rootProject.buildDir
 }

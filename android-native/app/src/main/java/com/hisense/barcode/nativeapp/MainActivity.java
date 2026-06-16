@@ -15,7 +15,6 @@ import android.text.TextWatcher;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.widget.EditText;
@@ -79,7 +78,8 @@ public final class MainActivity extends Activity {
     private final List<ProductModel> models = new ArrayList<>();
     private final List<ScanRow> rows = new ArrayList<>();
     private final Map<String, ProductModel> modelByProductCode = new HashMap<>();
-    private final NumberFormat persianNumberFormat = NumberFormat.getInstance(new Locale("fa", "IR"));
+    private final NumberFormat persianNumberFormat =
+            NumberFormat.getInstance(new Locale.Builder().setLanguage("fa").setRegion("IR").build());
 
     private ApiClient apiClient;
     private Step step = Step.LOGIN;
@@ -128,9 +128,6 @@ public final class MainActivity extends Activity {
         }
         getWindow().getDecorView().setLayoutDirection(View.LAYOUT_DIRECTION_RTL);
         getWindow().getDecorView().setTextDirection(View.TEXT_DIRECTION_RTL);
-        getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE);
-        getWindow().setStatusBarColor(DCODE_900);
-        getWindow().setNavigationBarColor(APP_BG);
 
         apiClient = new ApiClient(BuildConfig.API_BASE_URL);
 
@@ -340,7 +337,6 @@ public final class MainActivity extends Activity {
     }
 
     private void renderCollect() {
-        getWindow().setStatusBarColor(DCODE_900);
         LinearLayout root = vertical(Gravity.NO_GRAVITY);
         root.setBackgroundColor(APP_BG);
         root.setPadding(dp(10), dp(8), dp(10), dp(10));
