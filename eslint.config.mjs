@@ -31,8 +31,14 @@ const eslintConfig = defineConfig([
   globalIgnores([
     // Default ignores of eslint-config-next:
     '.next/**',
+    '.tmp/**',
     'out/**',
     'build/**',
+    'android/.gradle/**',
+    'android/**/build/**',
+    'android-native/.gradle/**',
+    'android-native/**/build/**',
+    'node_modules/**',
     'next-env.d.ts',
   ]),
 ]);

@@ -21,6 +21,21 @@
 # production
 /build
 
+# android generated/local artifacts
+/android/.gradle/
+/android/**/build/
+/android/local.properties
+/android/.cxx/
+/android/.externalNativeBuild/
+/android/captures/
+/android-native/.gradle/
+/android-native/**/build/
+/android-native/local.properties
+/android-native/.cxx/
+/android-native/.externalNativeBuild/
+/android-native/captures/
+*.iml
+
 # misc
 .DS_Store
 *.pem

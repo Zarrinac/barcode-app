@@ -3,6 +3,7 @@
         <item name="android:fontFamily">@font/iransansx</item>
         <item name="android:windowActionModeOverlay">true</item>
         <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">#0c121e</item>
         <item name="android:navigationBarColor">#f5f7fa</item>
         <item name="android:colorAccent">#ff2b3d</item>
     </style>

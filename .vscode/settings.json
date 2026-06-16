@@ -6,7 +6,16 @@
       "default": true
     }
   ],
+  "java.import.exclusions": [
+    "**/node_modules/**",
+    "**/.gradle/**",
+    "**/.metadata/**",
+    "**/archetype-resources/**",
+    "**/META-INF/maven/**"
+  ],
+  "java.import.gradle.wrapper.enabled": true,
   "java.import.gradle.java.home": "C:\\Program Files\\Android\\Android Studio\\jbr",
   "java.configuration.updateBuildConfiguration": "automatic",
+  "gradle.nestedProjects": false,
   "css.lint.unknownAtRules": "ignore"
 }
