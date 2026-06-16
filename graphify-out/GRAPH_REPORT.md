@@ -7,13 +7,13 @@
 
 ## Summary
 
-- 700 nodes · 1249 edges · 55 communities (39 shown, 16 thin omitted)
+- 703 nodes · 1268 edges · 56 communities (40 shown, 16 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 34 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
 
-- Built from commit: `36db622f`
+- Built from commit: `ab6d9573`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -66,9 +66,9 @@
 5. `Barcode Warehouse - Technical Documentation` - 20 edges
 6. `مستندات فنی Barcode Warehouse` - 20 edges
 7. `scripts` - 18 edges
-8. `String` - 17 edges
-9. `ExcelExporter` - 17 edges
-10. `compilerOptions` - 16 edges
+8. `ExcelExporter` - 17 edges
+9. `String` - 17 edges
+10. `String` - 17 edges
 
 ## Surprising Connections (you probably didn't know these)
 
@@ -87,12 +87,12 @@
 
 - None detected.
 
-## Communities (55 total, 16 thin omitted)
+## Communities (56 total, 16 thin omitted)
 
 ### Community 0 - "Community 0"
 
 Cohesion: 0.08
-Nodes (23): Activity, Bundle, Button, CommitAction, EditText, Exception, FrameLayout, GradientDrawable (+15 more)
+Nodes (24): Activity, String, Bundle, Button, CommitAction, EditText, Exception, FrameLayout (+16 more)
 
 ### Community 1 - "Community 1"
 
@@ -161,8 +161,8 @@ Nodes (21): tsconfig-paths, compilerOptions, allowJs, esModuleInterop, increment
 
 ### Community 14 - "Community 14"
 
-Cohesion: 0.26
-Nodes (7): JSONObject, List, String, HttpURLConnection, InputStream, ApiClient, ApiException
+Cohesion: 0.24
+Nodes (8): JSONObject, List, String, Exception, HttpURLConnection, InputStream, ApiClient, ApiException
 
 ### Community 15 - "Community 15"
 
@@ -196,7 +196,7 @@ Nodes (7): css.lint.unknownAtRules, gradle.nestedProjects, java.configuration.ru
 
 ## Knowledge Gaps
 
-- **268 isolated node(s):** `java.configuration.runtimes`, `java.import.exclusions`, `java.import.gradle.wrapper.enabled`, `java.import.gradle.java.home`, `java.configuration.updateBuildConfiguration` (+263 more)
+- **268 isolated node(s):** `PreToolUse`, `husky.sh script`, `java.configuration.runtimes`, `java.import.exclusions`, `java.import.gradle.wrapper.enabled` (+263 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **16 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -214,7 +214,7 @@ _Questions this graph is uniquely positioned to answer:_
   _`readJsonBody()` has 4 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 4 inferred relationships involving `readString()` (e.g. with `PATCH()` and `PATCH()`) actually correct?**
   _`readString()` has 4 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `java.configuration.runtimes`, `java.import.exclusions`, `java.import.gradle.wrapper.enabled` to the rest of the system?**
+- **What connects `PreToolUse`, `husky.sh script`, `java.configuration.runtimes` to the rest of the system?**
   _268 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
-  _Cohesion score 0.07889237199582028 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.08146067415730338 - nodes in this community are weakly interconnected._
