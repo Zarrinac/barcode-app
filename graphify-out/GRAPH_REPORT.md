@@ -1,19 +1,19 @@
-# Graph Report - barcode-app (2026-06-16)
+# Graph Report - barcode-app (2026-07-02)
 
 ## Corpus Check
 
-- 106 files · ~145,789 words
+- 106 files · ~146,209 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
 
-- 703 nodes · 1268 edges · 56 communities (40 shown, 16 thin omitted)
+- 711 nodes · 1276 edges · 56 communities (40 shown, 16 thin omitted)
 - Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 34 edges (avg confidence: 0.8)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
 
-- Built from commit: `ab6d9573`
+- Built from commit: `1d9b8d77`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -54,6 +54,7 @@
 - [[_COMMUNITY_Community 33|Community 33]]
 - [[_COMMUNITY_Community 34|Community 34]]
 - [[_COMMUNITY_Community 35|Community 35]]
+- [[_COMMUNITY_Community 48|Community 48]]
 - [[_COMMUNITY_Community 49|Community 49]]
 - [[_COMMUNITY_Community 50|Community 50]]
 
@@ -194,9 +195,14 @@ Nodes (5): Backend, Build, D'CODE Native Scanner, Override API URL, Package
 Cohesion: 0.25
 Nodes (7): css.lint.unknownAtRules, gradle.nestedProjects, java.configuration.runtimes, java.configuration.updateBuildConfiguration, java.import.exclusions, java.import.gradle.java.home, java.import.gradle.wrapper.enabled
 
+### Community 48 - "Community 48"
+
+Cohesion: 0.22
+Nodes (8): After changing code, Auth (custom — no NextAuth), Barcode Warehouse App, Common commands, Deployment, Layout, Stack (read carefully — versions are ahead of common knowledge), Two Android apps (different package IDs, installable side by side)
+
 ## Knowledge Gaps
 
-- **268 isolated node(s):** `PreToolUse`, `husky.sh script`, `java.configuration.runtimes`, `java.import.exclusions`, `java.import.gradle.wrapper.enabled` (+263 more)
+- **275 isolated node(s):** `PreToolUse`, `husky.sh script`, `java.configuration.runtimes`, `java.import.exclusions`, `java.import.gradle.wrapper.enabled` (+270 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **16 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -205,9 +211,9 @@ Nodes (7): css.lint.unknownAtRules, gradle.nestedProjects, java.configuration.ru
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `devDependencies` connect `Community 5` to `Community 3`, `Community 13`?**
-  _High betweenness centrality (0.044) - this node is a cross-community bridge._
+  _High betweenness centrality (0.043) - this node is a cross-community bridge._
 - **Why does `tsconfig-paths` connect `Community 13` to `Community 5`?**
-  _High betweenness centrality (0.017) - this node is a cross-community bridge._
+  _High betweenness centrality (0.016) - this node is a cross-community bridge._
 - **Are the 8 inferred relationships involving `jsonError()` (e.g. with `DELETE()` and `PATCH()`) actually correct?**
   _`jsonError()` has 8 INFERRED edges - model-reasoned connections that need verification._
 - **Are the 4 inferred relationships involving `readJsonBody()` (e.g. with `PATCH()` and `PATCH()`) actually correct?**
@@ -215,6 +221,6 @@ _Questions this graph is uniquely positioned to answer:_
 - **Are the 4 inferred relationships involving `readString()` (e.g. with `PATCH()` and `PATCH()`) actually correct?**
   _`readString()` has 4 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `PreToolUse`, `husky.sh script`, `java.configuration.runtimes` to the rest of the system?**
-  _268 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _275 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Community 0` be split into smaller, more focused modules?**
   _Cohesion score 0.08146067415730338 - nodes in this community are weakly interconnected._

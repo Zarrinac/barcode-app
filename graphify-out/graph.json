@@ -4962,6 +4962,78 @@
       "norm_label": "claude.md"
     },
     {
+      "label": "Barcode Warehouse App",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L3",
+      "id": "claude_barcode_warehouse_app",
+      "community": 48,
+      "norm_label": "barcode warehouse app"
+    },
+    {
+      "label": "Stack (read carefully \u2014 versions are ahead of common knowledge)",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L7",
+      "id": "claude_stack_read_carefully_versions_are_ahead_of_common_knowledge",
+      "community": 48,
+      "norm_label": "stack (read carefully \u2014 versions are ahead of common knowledge)"
+    },
+    {
+      "label": "Layout",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L16",
+      "id": "claude_layout",
+      "community": 48,
+      "norm_label": "layout"
+    },
+    {
+      "label": "Auth (custom \u2014 no NextAuth)",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L25",
+      "id": "claude_auth_custom_no_nextauth",
+      "community": 48,
+      "norm_label": "auth (custom \u2014 no nextauth)"
+    },
+    {
+      "label": "Two Android apps (different package IDs, installable side by side)",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L29",
+      "id": "claude_two_android_apps_different_package_ids_installable_side_by_side",
+      "community": 48,
+      "norm_label": "two android apps (different package ids, installable side by side)"
+    },
+    {
+      "label": "Common commands",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L35",
+      "id": "claude_common_commands",
+      "community": 48,
+      "norm_label": "common commands"
+    },
+    {
+      "label": "Deployment",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L42",
+      "id": "claude_deployment",
+      "community": 48,
+      "norm_label": "deployment"
+    },
+    {
+      "label": "After changing code",
+      "file_type": "document",
+      "source_file": "CLAUDE.md",
+      "source_location": "L46",
+      "id": "claude_after_changing_code",
+      "community": 48,
+      "norm_label": "after changing code"
+    },
+    {
       "label": "DEPLOYMENT.md",
       "file_type": "document",
       "source_file": "DEPLOYMENT.md",
@@ -18305,6 +18377,86 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L3",
+      "weight": 1.0,
+      "source": "claude",
+      "target": "claude_barcode_warehouse_app",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L46",
+      "weight": 1.0,
+      "source": "claude_barcode_warehouse_app",
+      "target": "claude_after_changing_code",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L25",
+      "weight": 1.0,
+      "source": "claude_barcode_warehouse_app",
+      "target": "claude_auth_custom_no_nextauth",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L35",
+      "weight": 1.0,
+      "source": "claude_barcode_warehouse_app",
+      "target": "claude_common_commands",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L42",
+      "weight": 1.0,
+      "source": "claude_barcode_warehouse_app",
+      "target": "claude_deployment",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L16",
+      "weight": 1.0,
+      "source": "claude_barcode_warehouse_app",
+      "target": "claude_layout",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L7",
+      "weight": 1.0,
+      "source": "claude_barcode_warehouse_app",
+      "target": "claude_stack_read_carefully_versions_are_ahead_of_common_knowledge",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CLAUDE.md",
+      "source_location": "L29",
+      "weight": 1.0,
+      "source": "claude_barcode_warehouse_app",
+      "target": "claude_two_android_apps_different_package_ids_installable_side_by_side",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "DEPLOYMENT.md",
       "source_location": "L1",
       "weight": 1.0,
@@ -19714,5 +19866,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "ab6d9573e74f36268d8cea296b083acfc9cab179"
+  "built_at_commit": "1d9b8d771d6ee8c624ae5d344caf9092dd426e2d"
 }
