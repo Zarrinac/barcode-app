@@ -61,7 +61,5 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# graphify local/cache artifacts
-/graphify-out/.graphify_python
-/graphify-out/.graphify_root
-/graphify-out/cache/
+# graphify knowledge-graph outputs (large, auto-generated; regenerate with: graphify update .)
+/graphify-out/
