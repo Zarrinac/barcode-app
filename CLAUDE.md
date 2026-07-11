@@ -43,6 +43,13 @@ Warehouse barcode scanning + inventory management for Hisense. Operators scan pr
 
 Must run as a **Node server** (`next start`) — not a static export (uses API routes + Prisma). Production target: `bcrs.dcode.co.ir` behind nginx, Node 22+, PM2. See [DEPLOYMENT.md](DEPLOYMENT.md).
 
+## Database backups
+
+Prod DB (`barcode_app`) is backed up by `/home/reza/scripts/backup-db.sh` on the barcode-app server (cron, daily 02:30 IST). It runs `pg_dump -Fc` and rotates grandfather-father-son: `db-backups/{daily(5),weekly(4,Sun),monthly(6,1st)}/`, then `rsync --delete` mirrors all tiers offsite to `ntp-server:/home/reza/barcode-db-backups/`. Log: `~/db-backups/backup.log`.
+
+- **Restore:** `pg_restore -d "<DATABASE_URL without ?schema>" --clean --if-exists <file.dump>`.
+- Dumps are **pg_dump 18** custom-format; `pg_restore` **must be ≥ 18** to read them (an older client fails with "unsupported version"). To restore into an older server, use an 18 client against it (works for this simple Prisma schema; a harmless `transaction_timeout` SET error is ignored).
+
 ## After changing code
 
 Run `graphify update .` to keep `graphify-out/` current (AST-only, no API cost).
