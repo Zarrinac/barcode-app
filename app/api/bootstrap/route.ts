@@ -7,11 +7,9 @@ export async function GET() {
   const [productModels, serialRecords, locations, users] = await Promise.all([
     prisma.productModel.findMany({
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      take: 250,
     }),
     prisma.serialRecord.findMany({
       orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-      take: 500,
     }),
     prisma.warehouseLocation.findMany({
       include: {
