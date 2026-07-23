@@ -15,7 +15,6 @@ function isRealTrackingCode(value: string) {
 export async function GET() {
   const serials = await prisma.serialRecord.findMany({
     orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-    take: 500,
   });
 
   return Response.json({ serials: serials.map(mapSerialRecord) });
