@@ -41,7 +41,9 @@ Warehouse barcode scanning + inventory management for Hisense. Operators scan pr
 
 ## Deployment
 
-Must run as a **Node server** (`next start`) — not a static export (uses API routes + Prisma). Production target: `bcrs.dcode.co.ir` behind nginx, Node 22+, PM2. See [DEPLOYMENT.md](DEPLOYMENT.md).
+Must run as a **Node server** (`next start`) — not a static export (uses API routes + Prisma). Production target: `bcrs.dcode.co.ir` behind nginx, Node via nvm (v24.x). Runs under **systemd** (`barcode-app.service`, `ExecStart=… npm run start:prod`), **not PM2**. See [DEPLOYMENT.md](DEPLOYMENT.md).
+
+Deploy flow (in `/opt/barcode-app`): `git pull origin main` → `npm ci` → `npx prisma generate` → `npm run db:deploy` → `npm run deploy:check` → `npm run build` → `sudo systemctl restart barcode-app`. Verify: `systemctl status barcode-app --no-pager`, `curl -I http://127.0.0.1:3000/scanner`, `curl -I http://127.0.0.1/scanner`. Note: node/npm come from nvm, so over ssh prefix commands with `export PATH="$HOME/.nvm/versions/node/v24.15.0/bin:$PATH"`.
 
 ## Database backups
 
