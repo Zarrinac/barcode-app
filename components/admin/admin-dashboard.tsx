@@ -55,6 +55,7 @@ import type {
   ScanResponse,
   SerialDraft,
   SerialRecord,
+  SerialRecordListResponse,
   SerialRecordResponse,
   SessionResponse,
   ViewId,
@@ -64,7 +65,7 @@ import {
   NATIVE_APK_DOWNLOAD_FILENAME,
   NATIVE_APK_DOWNLOAD_PATH,
 } from '@/lib/app-info';
-import { downloadSerialExcelFile } from '@/lib/serial-excel';
+import { downloadExcelBlob, downloadSerialExcelFile } from '@/lib/serial-excel';
 
 const menuItems: Array<{ id: ViewId; label: string; icon: ReactNode }> = [
   { id: 'serial-list', label: 'لیست سریال', icon: <BadgeOutlined /> },
@@ -121,7 +122,8 @@ export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activeView, setActiveView] = useState<ViewId>('serial-list');
   const [models, setModels] = useState<ProductModel[]>(seedModels);
-  const [serials, setSerials] = useState<SerialRecord[]>(seedSerials);
+  const [serialPageData, setSerialPageData] = useState<SerialRecordListResponse | null>(null);
+  const [serialRefresh, setSerialRefresh] = useState(0);
   const [locations, setLocations] = useState<LocationSummary[]>(seedLocations);
   const [dataSource, setDataSource] = useState<'sample' | 'database'>('sample');
   const [statusMessage, setStatusMessage] = useState('');
@@ -129,6 +131,7 @@ export default function Home() {
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [modelSearch, setModelSearch] = useState('');
   const [serialSearch, setSerialSearch] = useState('');
+  const [serialQuery, setSerialQuery] = useState('');
   const [serialDateFrom, setSerialDateFrom] = useState('');
   const [serialDateTo, setSerialDateTo] = useState('');
   const [modelPage, setModelPage] = useState(1);
@@ -163,7 +166,6 @@ export default function Home() {
 
   const applyBootstrapData = useCallback((data: BootstrapData) => {
     setModels(data.models.length > 0 ? data.models : seedModels);
-    setSerials(data.serials.length > 0 ? data.serials : seedSerials);
     setLocations(data.locations.length > 0 ? data.locations : seedLocations);
     setDataSource('database');
   }, []);
@@ -240,7 +242,6 @@ export default function Home() {
         }
 
         setModels(readStorage('barcode-app-models', seedModels));
-        setSerials(readStorage('barcode-app-serials', seedSerials));
         setLocations(readStorage('barcode-app-locations', seedLocations));
         setDataSource('sample');
       }
@@ -274,8 +275,8 @@ export default function Home() {
       return;
     }
 
-    window.localStorage.setItem('barcode-app-serials', JSON.stringify(serials));
-  }, [hasHydrated, serials]);
+    window.localStorage.removeItem('barcode-app-serials');
+  }, [hasHydrated]);
 
   useEffect(() => {
     if (!hasHydrated) {
@@ -320,12 +321,87 @@ export default function Home() {
     );
   }, [modelSearch, models]);
 
-  const filteredSerials = useMemo(() => {
+  useEffect(() => {
+    const timeout = window.setTimeout(() => setSerialQuery(serialSearch.trim()), 300);
+
+    return () => window.clearTimeout(timeout);
+  }, [serialSearch]);
+
+  useEffect(() => {
+    if (!hasHydrated) {
+      return;
+    }
+
+    const controller = new AbortController();
+
+    async function loadSerials() {
+      const params = new URLSearchParams({
+        page: String(serialPage),
+        pageSize: String(serialPageSize),
+      });
+
+      if (serialQuery) {
+        params.set('search', serialQuery);
+      }
+
+      if (serialDateFrom) {
+        params.set('dateFrom', serialDateFrom);
+      }
+
+      if (serialDateTo) {
+        params.set('dateTo', serialDateTo);
+      }
+
+      const response = await fetch(`/api/serial-records?${params.toString()}`, {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
+
+      if (!response.ok) {
+        throw new Error(`Serial list request failed with ${response.status}`);
+      }
+
+      const data = (await response.json()) as SerialRecordListResponse;
+
+      setSerialPageData(data);
+
+      const totalPages = Math.max(1, Math.ceil(data.filteredTotal / data.pageSize));
+
+      if (data.page > totalPages) {
+        setSerialPage(totalPages);
+      }
+    }
+
+    // A failed refresh keeps the last successful page: replacing real rows with
+    // the sample fallback mid-session would misrepresent the filter result.
+    loadSerials().catch((error) => {
+      if (error instanceof DOMException && error.name === 'AbortError') {
+        return;
+      }
+
+      setStatusTone('error');
+      setStatusMessage('دریافت لیست سریال‌ها ناموفق بود.');
+    });
+
+    return () => controller.abort();
+  }, [
+    hasHydrated,
+    serialDateFrom,
+    serialDateTo,
+    serialPage,
+    serialPageSize,
+    serialQuery,
+    serialRefresh,
+  ]);
+
+  const refreshSerials = () => setSerialRefresh((current) => current + 1);
+
+  const fallbackFilteredSerials = useMemo(() => {
     const query = serialSearch.trim().toLowerCase();
     const fromKey = persianDateKey(serialDateFrom);
     const toKey = persianDateKey(serialDateTo);
 
-    return serials.filter((item) => {
+    return seedSerials.filter((item) => {
       const matchesQuery =
         !query ||
         [item.documentNo, item.customerName].some((value) => value.toLowerCase().includes(query));
@@ -335,14 +411,22 @@ export default function Home() {
 
       return matchesQuery && matchesDateFrom && matchesDateTo;
     });
-  }, [serialDateFrom, serialDateTo, serialSearch, serials]);
+  }, [serialDateFrom, serialDateTo, serialSearch]);
+
+  const serialFilteredTotal = serialPageData?.filteredTotal ?? fallbackFilteredSerials.length;
+  const serialTotal = serialPageData?.total ?? seedSerials.length;
 
   const modelTotalPages = Math.max(1, Math.ceil(filteredModels.length / modelPageSize));
-  const serialTotalPages = Math.max(1, Math.ceil(filteredSerials.length / serialPageSize));
+  const serialTotalPages = Math.max(1, Math.ceil(serialFilteredTotal / serialPageSize));
   const safeModelPage = Math.min(modelPage, modelTotalPages);
   const safeSerialPage = Math.min(serialPage, serialTotalPages);
   const modelPageStart = (safeModelPage - 1) * modelPageSize;
   const serialPageStart = (safeSerialPage - 1) * serialPageSize;
+  // Number rows from the page the server actually returned, so the counter stays
+  // aligned with the visible rows while a new page is still in flight.
+  const serialRowOffset = serialPageData
+    ? (serialPageData.page - 1) * serialPageData.pageSize
+    : serialPageStart;
 
   const paginatedModels = useMemo(
     () => filteredModels.slice(modelPageStart, modelPageStart + modelPageSize),
@@ -350,16 +434,19 @@ export default function Home() {
   );
 
   const paginatedSerials = useMemo(
-    () => filteredSerials.slice(serialPageStart, serialPageStart + serialPageSize),
-    [filteredSerials, serialPageSize, serialPageStart],
+    () =>
+      serialPageData
+        ? serialPageData.serials
+        : fallbackFilteredSerials.slice(serialPageStart, serialPageStart + serialPageSize),
+    [fallbackFilteredSerials, serialPageData, serialPageSize, serialPageStart],
   );
 
   const stats = useMemo(() => {
     return {
       models: models.length,
-      serials: serials.length,
+      serials: serialTotal,
     };
-  }, [models.length, serials]);
+  }, [models.length, serialTotal]);
 
   const openProductCreate = () => {
     setProductDialog({ mode: 'create', draft: emptyProductDraft });
@@ -461,8 +548,8 @@ export default function Home() {
         data.serial &&
         (data.action === 'INBOUND_CREATED' || data.action === 'OUTBOUND_CREATED')
       ) {
-        setSerials((current) => [data.serial as SerialRecord, ...current]);
         setSerialPage(1);
+        refreshSerials();
         setScanContext((current) => ({ ...current, trackingCode: '' }));
         void loadBootstrapData();
       }
@@ -565,22 +652,19 @@ export default function Home() {
         productCode: draft.productCode.trim() || matchedModel?.productCode || '',
         model: draft.model.trim() || matchedModel?.model || '',
       };
-      const data =
-        serialDialog.mode === 'create'
-          ? await apiRequest<SerialRecordResponse>('/api/serial-records', {
-              body: JSON.stringify(payload),
-              method: 'POST',
-            })
-          : await apiRequest<SerialRecordResponse>(`/api/serial-records/${draft.id}`, {
-              body: JSON.stringify(payload),
-              method: 'PATCH',
-            });
+      if (serialDialog.mode === 'create') {
+        await apiRequest<SerialRecordResponse>('/api/serial-records', {
+          body: JSON.stringify(payload),
+          method: 'POST',
+        });
+      } else {
+        await apiRequest<SerialRecordResponse>(`/api/serial-records/${draft.id}`, {
+          body: JSON.stringify(payload),
+          method: 'PATCH',
+        });
+      }
 
-      setSerials((current) =>
-        serialDialog.mode === 'create'
-          ? [data.serial, ...current]
-          : current.map((item) => (item.id === data.serial.id ? data.serial : item)),
-      );
+      refreshSerials();
       setSerialDialog(null);
       showStatusMessage(
         serialDialog.mode === 'create' ? 'سریال ذخیره شد.' : 'سریال ویرایش شد.',
@@ -626,7 +710,7 @@ export default function Home() {
       confirmLabel: 'حذف سریال',
       onConfirm: async () => {
         await apiRequest<{ ok: boolean }>(`/api/serial-records/${id}`, { method: 'DELETE' });
-        setSerials((current) => current.filter((serial) => serial.id !== id));
+        refreshSerials();
         showStatusMessage('سریال حذف شد.', 'success');
         void loadBootstrapData();
       },
@@ -691,11 +775,11 @@ export default function Home() {
     }
   };
 
-  const exportCsv = (type: 'models' | 'serials') => {
-    if (type === 'serials') {
+  const exportSerialsExcel = async () => {
+    if (!serialPageData) {
       const serialSearchQuery = serialSearch.trim();
       const filteredDocumentNos = Array.from(
-        new Set(filteredSerials.map((item) => item.documentNo.trim()).filter(Boolean)),
+        new Set(fallbackFilteredSerials.map((item) => item.documentNo.trim()).filter(Boolean)),
       );
       const exportFilename =
         serialSearchQuery &&
@@ -705,7 +789,7 @@ export default function Home() {
           : `serials-${Date.now()}`;
 
       downloadSerialExcelFile(
-        filteredSerials.map((item) => ({
+        fallbackFilteredSerials.map((item) => ({
           date: item.date,
           documentNo: item.documentNo,
           customerName: item.customerName,
@@ -716,6 +800,48 @@ export default function Home() {
         })),
         exportFilename,
       );
+      return;
+    }
+
+    try {
+      const params = new URLSearchParams();
+
+      if (serialQuery) {
+        params.set('search', serialQuery);
+      }
+
+      if (serialDateFrom) {
+        params.set('dateFrom', serialDateFrom);
+      }
+
+      if (serialDateTo) {
+        params.set('dateTo', serialDateTo);
+      }
+
+      const response = await fetch(`/api/serial-records/export?${params.toString()}`, {
+        cache: 'no-store',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Export request failed with ${response.status}`);
+      }
+
+      const blob = await response.blob();
+      const disposition = response.headers.get('Content-Disposition') ?? '';
+      const encodedFilename = disposition.match(/filename\*=UTF-8''([^;]+)/)?.[1];
+      const filename = encodedFilename
+        ? decodeURIComponent(encodedFilename)
+        : `serials-${Date.now()}.xlsx`;
+
+      downloadExcelBlob(blob, filename);
+    } catch {
+      showStatusMessage('دانلود فایل اکسل ناموفق بود.', 'error');
+    }
+  };
+
+  const exportCsv = (type: 'models' | 'serials') => {
+    if (type === 'serials') {
+      void exportSerialsExcel();
       return;
     }
 
@@ -1237,7 +1363,7 @@ export default function Home() {
                 <tbody>
                   {paginatedSerials.map((item, index) => (
                     <tr key={item.id}>
-                      <td>{serialPageStart + index + 1}</td>
+                      <td>{serialRowOffset + index + 1}</td>
                       <td>{item.date}</td>
                       <td>{item.documentNo || '-'}</td>
                       <td>{item.customerName}</td>
@@ -1305,7 +1431,7 @@ export default function Home() {
                         {item.serialNo}
                       </strong>
                       <span className={'shrink-0 font-black text-dcode-red-700'}>
-                        #{(serialPageStart + index + 1).toLocaleString('fa-IR')}
+                        #{(serialRowOffset + index + 1).toLocaleString('fa-IR')}
                       </span>
                     </div>
                     <div className={'grid gap-0.5'}>
@@ -1364,11 +1490,11 @@ export default function Home() {
               )}
             </div>
             <PaginationSummary
-              filteredTotal={filteredSerials.length}
+              filteredTotal={serialFilteredTotal}
               onPageChange={setSerialPage}
               page={safeSerialPage}
               pageSize={serialPageSize}
-              total={serials.length}
+              total={serialTotal}
             />
           </ContentPanel>
         )}

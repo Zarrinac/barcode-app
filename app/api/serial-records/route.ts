@@ -3,21 +3,52 @@ import { MovementType, RecordSource, SerialStatus } from '@prisma/client';
 import { mapSerialRecord, toPrismaMovement } from '@/lib/api-mappers';
 import { jsonError, readJsonBody, readString } from '@/lib/api-utils';
 import { prisma } from '@/lib/prisma';
+import { buildSerialRecordWhere, readSerialRecordFilters } from '@/lib/serial-records-query';
 import { getCurrentUser } from '@/lib/session';
 import { getDefaultWarehouseLocationId } from '@/lib/warehouse-location';
 
 export const dynamic = 'force-dynamic';
 
+const defaultPageSize = 20;
+const maxPageSize = 200;
+
 function isRealTrackingCode(value: string) {
   return value.trim().toLowerCase() !== 'panel';
 }
 
-export async function GET() {
-  const serials = await prisma.serialRecord.findMany({
-    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
-  });
+function readPositiveInt(value: string | null, fallback: number) {
+  const parsed = Number.parseInt(value ?? '', 10);
 
-  return Response.json({ serials: serials.map(mapSerialRecord) });
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+export async function GET(request: Request) {
+  const { searchParams } = new URL(request.url);
+  const page = readPositiveInt(searchParams.get('page'), 1);
+  const pageSize = Math.min(
+    maxPageSize,
+    readPositiveInt(searchParams.get('pageSize'), defaultPageSize),
+  );
+  const where = buildSerialRecordWhere(readSerialRecordFilters(searchParams));
+
+  const [serials, filteredTotal, total] = await Promise.all([
+    prisma.serialRecord.findMany({
+      where,
+      orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
+      skip: (page - 1) * pageSize,
+      take: pageSize,
+    }),
+    prisma.serialRecord.count({ where }),
+    prisma.serialRecord.count(),
+  ]);
+
+  return Response.json({
+    serials: serials.map(mapSerialRecord),
+    filteredTotal,
+    total,
+    page,
+    pageSize,
+  });
 }
 
 export async function POST(request: Request) {
