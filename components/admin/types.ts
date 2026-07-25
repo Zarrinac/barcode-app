@@ -41,7 +41,14 @@ export type LocationSummary = {
 export type BootstrapData = {
   locations: LocationSummary[];
   models: ProductModel[];
+};
+
+export type SerialRecordListResponse = {
   serials: SerialRecord[];
+  filteredTotal: number;
+  total: number;
+  page: number;
+  pageSize: number;
 };
 
 export type AuthUser = {
