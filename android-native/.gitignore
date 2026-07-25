@@ -1,0 +1,15 @@
+# Android build output
+.gradle/
+build/
+*/build/
+
+# Local machine configuration
+local.properties
+
+# IDE files
+.idea/
+*.iml
+
+# Built packages
+*.apk
+*.aab
