@@ -8,6 +8,7 @@ datasource db {
 
 enum UserRole {
   ADMIN
+  MANAGER
   USER
 }
 
@@ -27,6 +28,7 @@ enum RecordSource {
   MANUAL
   PDA
   LEGACY_IMPORT
+  EXCEL_IMPORT
 }
 
 model User {

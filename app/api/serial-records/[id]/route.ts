@@ -1,7 +1,13 @@
 import { mapSerialRecord, toPrismaMovement } from '@/lib/api-mappers';
-import { jsonError, parseId, readJsonBody, readString } from '@/lib/api-utils';
+import {
+  isRecordNotFoundError,
+  jsonError,
+  parseId,
+  readJsonBody,
+  readString,
+} from '@/lib/api-utils';
 import { prisma } from '@/lib/prisma';
-import { getCurrentUser } from '@/lib/session';
+import { getCurrentUser, requireManager } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
@@ -61,28 +67,42 @@ export async function PATCH(request: Request, ctx: RouteContext<'/api/serial-rec
     return jsonError('کد رهگیری قبلا ثبت شده است.', 409);
   }
 
-  const serial = await prisma.serialRecord.update({
-    where: { id },
-    data: {
-      docDate: readString(body, 'date'),
-      documentNo: readString(body, 'documentNo'),
-      customerName: readString(body, 'customerName') || 'انبار مرکزی',
-      productCode,
-      modelName: readString(body, 'model') || product?.modelName || '',
-      trackingCode,
-      serialNo,
-      movement,
-      productModelId: product?.id,
-      legacyFlag: 1,
-      updatedAt: new Date(),
-      updatedBy: currentUser.username,
-    },
-  });
+  try {
+    const serial = await prisma.serialRecord.update({
+      where: { id },
+      data: {
+        docDate: readString(body, 'date'),
+        documentNo: readString(body, 'documentNo'),
+        customerName: readString(body, 'customerName') || 'انبار مرکزی',
+        productCode,
+        modelName: readString(body, 'model') || product?.modelName || '',
+        trackingCode,
+        serialNo,
+        movement,
+        productModelId: product?.id,
+        legacyFlag: 1,
+        updatedAt: new Date(),
+        updatedBy: currentUser.username,
+      },
+    });
 
-  return Response.json({ serial: mapSerialRecord(serial) });
+    return Response.json({ serial: mapSerialRecord(serial) });
+  } catch (error) {
+    if (isRecordNotFoundError(error)) {
+      return jsonError('این سریال پیدا نشد. صفحه را تازه کنید.', 404);
+    }
+
+    throw error;
+  }
 }
 
-export async function DELETE(_request: Request, ctx: RouteContext<'/api/serial-records/[id]'>) {
+export async function DELETE(request: Request, ctx: RouteContext<'/api/serial-records/[id]'>) {
+  const auth = await requireManager(request);
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
   const { id: rawId } = await ctx.params;
   const id = parseId(rawId);
 
@@ -90,7 +110,15 @@ export async function DELETE(_request: Request, ctx: RouteContext<'/api/serial-r
     return jsonError('Invalid serial record id.');
   }
 
-  await prisma.serialRecord.delete({ where: { id } });
+  try {
+    await prisma.serialRecord.delete({ where: { id } });
+  } catch (error) {
+    if (isRecordNotFoundError(error)) {
+      return jsonError('این سریال پیدا نشد. صفحه را تازه کنید.', 404);
+    }
+
+    throw error;
+  }
 
   return Response.json({ ok: true });
 }

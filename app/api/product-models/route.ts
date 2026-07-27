@@ -3,10 +3,19 @@ import { RecordSource } from '@prisma/client';
 import { mapProductModel } from '@/lib/api-mappers';
 import { jsonError, readJsonBody, readString } from '@/lib/api-utils';
 import { prisma } from '@/lib/prisma';
+import { requireManager, requireUser } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+// Read stays open to any signed-in account: both scanner apps load the model list to resolve a
+// scanned product code, and those run as USER.
+export async function GET(request: Request) {
+  const auth = await requireUser(request);
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
   const models = await prisma.productModel.findMany({
     orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
     take: 500,
@@ -16,6 +25,12 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireManager(request);
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
   const body = await readJsonBody(request);
   const modelName = readString(body, 'model');
   const productCode = readString(body, 'productCode');
@@ -31,7 +46,7 @@ export async function POST(request: Request) {
       productCode,
       warrantyCode,
       source: RecordSource.MANUAL,
-      createdBy: 'admin',
+      createdBy: auth.username,
       updatedBy: null,
     },
   });

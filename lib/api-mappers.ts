@@ -1,5 +1,16 @@
 import type { ProductModel, SerialRecord, WarehouseLocation } from '@prisma/client';
-import { MovementType, SerialStatus } from '@prisma/client';
+import { MovementType, SerialStatus, UserRole } from '@prisma/client';
+
+/** Anything not explicitly ADMIN or MANAGER falls back to the least-privileged role. */
+export function toPrismaUserRole(value: string): UserRole {
+  const role = value.trim().toUpperCase();
+
+  if (role === UserRole.ADMIN) {
+    return UserRole.ADMIN;
+  }
+
+  return role === UserRole.MANAGER ? UserRole.MANAGER : UserRole.USER;
+}
 
 const persianDateFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
   day: '2-digit',

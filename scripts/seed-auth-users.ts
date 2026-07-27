@@ -17,9 +17,9 @@ import { hashPassword } from '../lib/auth';
 const users = [
   { password: '123456', role: UserRole.ADMIN, username: 'admin' },
   { password: '12345678', role: UserRole.USER, username: 'rsf' },
-  { password: '108308', role: UserRole.USER, username: 'm.hadipour' },
-  { password: '1405190', role: UserRole.USER, username: 'z190' },
-  { password: '1405290', role: UserRole.USER, username: 'z290' },
+  { password: '108308', role: UserRole.MANAGER, username: 'm.hadipour' },
+  { password: '1405190', role: UserRole.MANAGER, username: 'z190' },
+  { password: '1405290', role: UserRole.MANAGER, username: 'z290' },
 ];
 
 async function main() {
