@@ -4,7 +4,6 @@ import { UploadFileOutlined } from '@mui/icons-material';
 import { useRef, useState } from 'react';
 
 import { Modal } from '@/components/admin/dashboard-primitives';
-import type { MovementType } from '@/components/admin/types';
 
 /**
  * Recovers scan batches that only ever made it to the device's local Excel backup — the operator
@@ -48,10 +47,6 @@ type ImportReport = {
   files: ImportFileReport[];
   rows: ImportRowReport[];
 };
-
-// Every scan is a warehouse exit, so there is nothing to choose here — recovered rows get the
-// same movement a successful send would have written.
-const importMovement: MovementType = 'خروج';
 
 const skippedRowLimit = 50;
 
@@ -118,7 +113,6 @@ export function SerialImportDialog({
     try {
       const body = new FormData();
 
-      body.append('movement', importMovement);
       body.append('dryRun', dryRun ? 'true' : 'false');
 
       for (const file of files) {
