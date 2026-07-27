@@ -1,4 +1,5 @@
-import { toPrismaMovement } from '@/lib/api-mappers';
+import { MovementType } from '@prisma/client';
+
 import { jsonError } from '@/lib/api-utils';
 import {
   buildReport,
@@ -40,7 +41,9 @@ export async function POST(request: Request) {
     return jsonError(`حداکثر ${maxFiles} فایل در هر بار قابل بارگذاری است.`);
   }
 
-  const movement = toPrismaMovement(String(formData.get('movement') ?? ''));
+  // Recovered batches are warehouse exits like every other scan, so the movement is fixed here
+  // for the same reason POST /api/serial-records fixes it — never taken from the request.
+  const movement = MovementType.OUTBOUND;
   // Defaults to a preview so the admin always sees what would change before anything is written.
   const dryRun = String(formData.get('dryRun') ?? 'true') !== 'false';
   const rows: SerialImportRow[] = [];
