@@ -1,10 +1,10 @@
 import { MovementType, RecordSource, SerialStatus } from '@prisma/client';
 
-import { mapSerialRecord, toPrismaMovement } from '@/lib/api-mappers';
+import { mapSerialRecord } from '@/lib/api-mappers';
 import { jsonError, readJsonBody, readString } from '@/lib/api-utils';
 import { prisma } from '@/lib/prisma';
 import { buildSerialRecordWhere, readSerialRecordFilters } from '@/lib/serial-records-query';
-import { getCurrentUser } from '@/lib/session';
+import { getCurrentUser, requireUser } from '@/lib/session';
 import { getDefaultWarehouseLocationId } from '@/lib/warehouse-location';
 
 export const dynamic = 'force-dynamic';
@@ -23,6 +23,12 @@ function readPositiveInt(value: string | null, fallback: number) {
 }
 
 export async function GET(request: Request) {
+  const auth = await requireUser(request);
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
   const { searchParams } = new URL(request.url);
   const page = readPositiveInt(searchParams.get('page'), 1);
   const pageSize = Math.min(
@@ -74,7 +80,11 @@ export async function POST(request: Request) {
         orderBy: { id: 'asc' },
       })
     : null;
-  const movement = toPrismaMovement(readString(body, 'movement'));
+  // A serial is only ever recorded as it leaves the warehouse, so the movement is fixed here
+  // rather than taken from the request. Deciding it server-side means records are correct from
+  // the moment this deploys, without waiting for every M3 device to get the rebuilt APK — older
+  // builds still send "ورود" and would otherwise keep writing the wrong direction.
+  const movement = MovementType.OUTBOUND;
   const duplicateConditions = [
     { serialNo },
     ...(trackingCode && isRealTrackingCode(trackingCode) ? [{ trackingCode }] : []),
@@ -109,7 +119,7 @@ export async function POST(request: Request) {
       trackingCode,
       serialNo,
       movement,
-      status: movement === MovementType.OUTBOUND ? SerialStatus.EXITED : SerialStatus.REGISTERED,
+      status: SerialStatus.EXITED,
       source: RecordSource.MANUAL,
       productModelId: product?.id,
       locationId,

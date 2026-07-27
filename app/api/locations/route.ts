@@ -1,10 +1,17 @@
 import { mapLocation } from '@/lib/api-mappers';
 import { jsonError, readJsonBody, readString } from '@/lib/api-utils';
 import { prisma } from '@/lib/prisma';
+import { requireManager, requireUser } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
+  const auth = await requireUser(request);
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
   const locations = await prisma.warehouseLocation.findMany({
     include: {
       _count: {
@@ -18,6 +25,12 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const auth = await requireManager(request);
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
   const body = await readJsonBody(request);
   const code = readString(body, 'code').toUpperCase();
   const name = readString(body, 'name');

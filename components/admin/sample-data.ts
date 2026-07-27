@@ -32,7 +32,8 @@ export const createEmptySerialDraft = (): SerialDraft => ({
   model: '',
   trackingCode: '',
   serialNo: '',
-  movement: 'ورود',
+  // Warehouse exits are the normal case; the dialog still lets an admin pick ورود.
+  movement: 'خروج',
 });
 
 export const seedModels: ProductModel[] = [];

@@ -1,10 +1,23 @@
 import { mapProductModel } from '@/lib/api-mappers';
-import { jsonError, parseId, readJsonBody, readString } from '@/lib/api-utils';
+import {
+  isRecordNotFoundError,
+  jsonError,
+  parseId,
+  readJsonBody,
+  readString,
+} from '@/lib/api-utils';
 import { prisma } from '@/lib/prisma';
+import { requireManager } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
 export async function PATCH(request: Request, ctx: RouteContext<'/api/product-models/[id]'>) {
+  const auth = await requireManager(request);
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
   const { id: rawId } = await ctx.params;
   const id = parseId(rawId);
 
@@ -21,21 +34,35 @@ export async function PATCH(request: Request, ctx: RouteContext<'/api/product-mo
     return jsonError('Model name and product code are required.');
   }
 
-  const model = await prisma.productModel.update({
-    where: { id },
-    data: {
-      modelName,
-      productCode,
-      warrantyCode,
-      legacyFlag: 1,
-      updatedBy: 'admin',
-    },
-  });
+  try {
+    const model = await prisma.productModel.update({
+      where: { id },
+      data: {
+        modelName,
+        productCode,
+        warrantyCode,
+        legacyFlag: 1,
+        updatedBy: auth.username,
+      },
+    });
 
-  return Response.json({ model: mapProductModel(model) });
+    return Response.json({ model: mapProductModel(model) });
+  } catch (error) {
+    if (isRecordNotFoundError(error)) {
+      return jsonError('این مدل کالا پیدا نشد. صفحه را تازه کنید.', 404);
+    }
+
+    throw error;
+  }
 }
 
-export async function DELETE(_request: Request, ctx: RouteContext<'/api/product-models/[id]'>) {
+export async function DELETE(request: Request, ctx: RouteContext<'/api/product-models/[id]'>) {
+  const auth = await requireManager(request);
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
   const { id: rawId } = await ctx.params;
   const id = parseId(rawId);
 
@@ -43,7 +70,15 @@ export async function DELETE(_request: Request, ctx: RouteContext<'/api/product-
     return jsonError('Invalid product model id.');
   }
 
-  await prisma.productModel.delete({ where: { id } });
+  try {
+    await prisma.productModel.delete({ where: { id } });
+  } catch (error) {
+    if (isRecordNotFoundError(error)) {
+      return jsonError('این مدل کالا پیدا نشد. صفحه را تازه کنید.', 404);
+    }
+
+    throw error;
+  }
 
   return Response.json({ ok: true });
 }

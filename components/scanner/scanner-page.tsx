@@ -456,7 +456,8 @@ export default function ScannerPage() {
             date: row.date,
             documentNo: row.documentNo,
             model: row.model,
-            movement: 'ورود',
+            // Operators scan goods on their way OUT of the warehouse, so every batch is an exit.
+            movement: 'خروج',
             productCode: row.productCode,
             serialNo: row.serialNo,
             trackingCode: row.trackingCode,

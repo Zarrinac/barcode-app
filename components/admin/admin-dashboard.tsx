@@ -12,6 +12,7 @@ import {
   Logout,
   QrCodeScanner,
   TableRowsOutlined,
+  UploadFileOutlined,
 } from '@mui/icons-material';
 import Image from 'next/image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -39,6 +40,7 @@ import {
   seedModels,
   seedSerials,
 } from '@/components/admin/sample-data';
+import { SerialImportDialog } from '@/components/admin/serial-import-dialog';
 import type {
   AuthUser,
   BootstrapData,
@@ -65,6 +67,7 @@ import {
   NATIVE_APK_DOWNLOAD_FILENAME,
   NATIVE_APK_DOWNLOAD_PATH,
 } from '@/lib/app-info';
+import { canManageData } from '@/lib/roles';
 import { downloadExcelBlob, downloadSerialExcelFile } from '@/lib/serial-excel';
 
 const menuItems: Array<{ id: ViewId; label: string; icon: ReactNode }> = [
@@ -163,6 +166,7 @@ export default function Home() {
     draft: LocationDraft;
   } | null>(null);
   const [confirmDialog, setConfirmDialog] = useState<ConfirmDialog | null>(null);
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
 
   const applyBootstrapData = useCallback((data: BootstrapData) => {
     setModels(data.models.length > 0 ? data.models : seedModels);
@@ -1253,17 +1257,31 @@ export default function Home() {
             title="لیست سریال‌ها"
             subtitle="ردیابی ورود و خروج کالا"
             action={
-              <button
-                className={cx(
-                  'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border-0 px-4 font-extrabold text-white shadow-lg transition hover:-translate-y-px hover:saturate-[1.08] hover:shadow-xl disabled:cursor-wait disabled:opacity-70 max-xs:px-3',
-                  'bg-linear-to-br from-dcode-red-500 to-dcode-red-700',
+              <div className="flex items-center gap-2 max-xs:flex-col max-xs:items-stretch">
+                {canManageData(currentUser?.role) && (
+                  <button
+                    className={
+                      'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border border-app-line bg-app-surface px-4 font-extrabold text-dcode-900 shadow-sm transition hover:-translate-y-px hover:shadow-md max-xs:px-3'
+                    }
+                    onClick={() => setIsImportDialogOpen(true)}
+                    type="button"
+                  >
+                    <UploadFileOutlined />
+                    بازیابی از اکسل
+                  </button>
                 )}
-                onClick={openSerialCreate}
-                type="button"
-              >
-                <Add />
-                سریال جدید
-              </button>
+                <button
+                  className={cx(
+                    'inline-flex min-h-10 items-center justify-center gap-2 rounded-xl border-0 px-4 font-extrabold text-white shadow-lg transition hover:-translate-y-px hover:saturate-[1.08] hover:shadow-xl disabled:cursor-wait disabled:opacity-70 max-xs:px-3',
+                    'bg-linear-to-br from-dcode-red-500 to-dcode-red-700',
+                  )}
+                  onClick={openSerialCreate}
+                  type="button"
+                >
+                  <Add />
+                  سریال جدید
+                </button>
+              </div>
             }
           >
             <Toolbar
@@ -1955,6 +1973,17 @@ export default function Home() {
             </button>
           </div>
         </Modal>
+      )}
+
+      {isImportDialogOpen && (
+        <SerialImportDialog
+          onClose={() => setIsImportDialogOpen(false)}
+          onImported={(message) => {
+            setIsImportDialogOpen(false);
+            refreshSerials();
+            showStatusMessage(message, 'success');
+          }}
+        />
       )}
     </main>
   );

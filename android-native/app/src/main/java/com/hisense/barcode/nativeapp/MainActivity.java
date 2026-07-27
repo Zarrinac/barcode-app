@@ -831,7 +831,9 @@ public final class MainActivity extends Activity {
                             body.put("date", row.date);
                             body.put("documentNo", row.documentNo);
                             body.put("model", row.model);
-                            body.put("movement", "ورود");
+                            // Operators scan goods on their way OUT of the warehouse, so every
+                            // batch this app sends is an exit.
+                            body.put("movement", "خروج");
                             body.put("productCode", row.productCode);
                             body.put("serialNo", row.serialNo);
                             body.put("trackingCode", row.trackingCode);

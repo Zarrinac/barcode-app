@@ -1,10 +1,17 @@
 import { prisma } from '@/lib/prisma';
 import { createSerialExcelBytes, sanitizeFilename } from '@/lib/serial-excel-workbook';
 import { buildSerialRecordWhere, readSerialRecordFilters } from '@/lib/serial-records-query';
+import { requireUser } from '@/lib/session';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: Request) {
+  const auth = await requireUser(request);
+
+  if (auth instanceof Response) {
+    return auth;
+  }
+
   const { searchParams } = new URL(request.url);
   const filters = readSerialRecordFilters(searchParams);
   const where = buildSerialRecordWhere(filters);

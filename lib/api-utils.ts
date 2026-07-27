@@ -20,6 +20,20 @@ export function parseId(value: string) {
   return id;
 }
 
+/**
+ * Prisma raises P2025 when delete/update targets a row that is already gone — which happens
+ * routinely when the dashboard list is stale. Without this the handler throws and the client gets
+ * a bare 500 with an empty body, so the UI can only say "failed" with no reason.
+ */
+export function isRecordNotFoundError(error: unknown) {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'code' in error &&
+    (error as { code?: unknown }).code === 'P2025'
+  );
+}
+
 export function readString(payload: Record<string, unknown>, key: string) {
   const value = payload[key];
 
