@@ -89,6 +89,11 @@ export function isRealTrackingCode(value: string) {
   return value.trim().toLowerCase() !== 'panel';
 }
 
+/**
+ * Header text to row field. A field may be listed under more than one heading: the tracking column
+ * is labelled «کد رهگیری» by this app but «شناسه رهگیری» by other exports of the same batch, and
+ * both have to import the same way.
+ */
 const headerFields = {
   تاریخ: 'docDate',
   'شماره سند': 'documentNo',
@@ -96,6 +101,7 @@ const headerFields = {
   'شناسه کالا': 'productCode',
   'مدل کالا': 'modelName',
   'کد رهگیری': 'trackingCode',
+  'شناسه رهگیری': 'trackingCode',
   'شماره سریال': 'serialNo',
 } as const;
 
