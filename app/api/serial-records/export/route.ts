@@ -1,3 +1,4 @@
+import { findModelNamesByProductCode, resolveModelName } from '@/lib/model-name';
 import { prisma } from '@/lib/prisma';
 import { createSerialExcelBytes, sanitizeFilename } from '@/lib/serial-excel-workbook';
 import { buildSerialRecordWhere, readSerialRecordFilters } from '@/lib/serial-records-query';
@@ -21,12 +22,13 @@ export async function GET(request: Request) {
     orderBy: [{ createdAt: 'desc' }, { id: 'desc' }],
   });
 
+  const modelNames = await findModelNamesByProductCode(records.map((record) => record.productCode));
   const rows = records.map((record) => ({
     date: record.docDate,
     documentNo: record.documentNo,
     customerName: record.customerName,
     productCode: record.productCode,
-    model: record.modelName,
+    model: resolveModelName(record, modelNames),
     trackingCode: record.trackingCode,
     serialNo: record.serialNo,
   }));

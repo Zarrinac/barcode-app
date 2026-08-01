@@ -44,14 +44,18 @@ export function mapLocation(location: WarehouseLocation & { _count?: { serials: 
   };
 }
 
-export function mapSerialRecord(serial: SerialRecord) {
+/**
+ * `modelName` on the row is only a snapshot of what the device sent. Callers that can look the
+ * product up pass the current name from product_models so the model column never shows a code.
+ */
+export function mapSerialRecord(serial: SerialRecord, modelName?: string) {
   return {
     id: String(serial.id),
     date: serial.docDate,
     documentNo: serial.documentNo,
     customerName: serial.customerName,
     productCode: serial.productCode,
-    model: serial.modelName,
+    model: modelName || serial.modelName,
     trackingCode: serial.trackingCode,
     serialNo: serial.serialNo,
     movement: serial.movement === 'OUTBOUND' ? 'خروج' : 'ورود',

@@ -73,6 +73,9 @@ public final class MainActivity extends Activity {
         COLLECT
     }
 
+    private static final String productModelsPrefsName = "barcode-app-cache";
+    private static final String productModelsPrefsKey = "product-models";
+
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
     private final List<ProductModel> models = new ArrayList<>();
@@ -650,6 +653,7 @@ public final class MainActivity extends Activity {
     }
 
     private void loadProductModels() {
+        applyProductModels(readCachedProductModels());
         executor.execute(
                 () -> {
                     try {
@@ -663,22 +667,83 @@ public final class MainActivity extends Activity {
                             }
                         }
 
+                        writeCachedProductModels(loaded);
+                        mainHandler.post(() -> applyProductModels(loaded));
+                    } catch (Exception error) {
                         mainHandler.post(
                                 () -> {
-                                    models.clear();
-                                    models.addAll(loaded);
-                                    modelByProductCode.clear();
-
-                                    for (ProductModel model : models) {
-                                        modelByProductCode.put(model.productCode, model);
+                                    // The cached list still resolves model names, so an offline
+                                    // batch keeps them in its Excel backup.
+                                    if (models.isEmpty()) {
+                                        showToast("لیست مدل کالا دریافت نشد.", true);
                                     }
-
-                                    updateCurrentModelText();
                                 });
-                    } catch (Exception error) {
-                        mainHandler.post(() -> showToast("لیست مدل کالا دریافت نشد.", true));
                     }
                 });
+    }
+
+    private void applyProductModels(List<ProductModel> loaded) {
+        if (loaded.isEmpty()) {
+            return;
+        }
+
+        models.clear();
+        models.addAll(loaded);
+        modelByProductCode.clear();
+
+        for (ProductModel model : models) {
+            modelByProductCode.put(model.productCode, model);
+        }
+
+        updateCurrentModelText();
+    }
+
+    /**
+     * The model list only comes from the server, but the Excel backup is saved precisely when the
+     * device is offline. Without the last downloaded copy every backed-up row loses its model name.
+     */
+    private List<ProductModel> readCachedProductModels() {
+        List<ProductModel> cached = new ArrayList<>();
+        String stored =
+                getSharedPreferences(productModelsPrefsName, MODE_PRIVATE)
+                        .getString(productModelsPrefsKey, null);
+
+        if (stored == null) {
+            return cached;
+        }
+
+        try {
+            JSONArray modelArray = new JSONArray(stored);
+
+            for (int index = 0; index < modelArray.length(); index++) {
+                cached.add(ProductModel.fromJson(modelArray.getJSONObject(index)));
+            }
+        } catch (Exception error) {
+            return new ArrayList<>();
+        }
+
+        return cached;
+    }
+
+    private void writeCachedProductModels(List<ProductModel> loaded) {
+        if (loaded.isEmpty()) {
+            return;
+        }
+
+        try {
+            JSONArray modelArray = new JSONArray();
+
+            for (ProductModel model : loaded) {
+                modelArray.put(model.toJson());
+            }
+
+            getSharedPreferences(productModelsPrefsName, MODE_PRIVATE)
+                    .edit()
+                    .putString(productModelsPrefsKey, modelArray.toString())
+                    .apply();
+        } catch (Exception error) {
+            // A failed cache write must not interrupt scanning.
+        }
     }
 
     private void clearProductForNewModel() {

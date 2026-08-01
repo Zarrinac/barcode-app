@@ -22,9 +22,11 @@ import {
   getDefaultStatusMessage,
   normalizeNumberInput,
   normalizeScan,
+  readCachedProductModels,
   scannerStorageKey,
   scannerSuccessToastMs,
   scannerToastMs,
+  writeCachedProductModels,
 } from '@/components/scanner/scanner-utils';
 import { APP_VERSION } from '@/lib/app-info';
 import { ensureSerialExcelFolder, saveSerialExcelFile } from '@/lib/serial-excel';
@@ -183,8 +185,20 @@ export default function ScannerPage() {
     }
 
     apiRequest<ProductModelsResponse>('/api/product-models')
-      .then((data) => setModels(data.models))
+      .then((data) => {
+        setModels(data.models);
+        writeCachedProductModels(data.models);
+      })
       .catch(() => {
+        // Falling back to the last downloaded list keeps model names on an offline batch, which is
+        // the only kind that ends up in an Excel backup.
+        const cached = readCachedProductModels();
+
+        if (cached.length > 0) {
+          setModels(cached);
+          return;
+        }
+
         setStatusMessage('لیست مدل کالا دریافت نشد.');
         setStatusTone('error');
       });

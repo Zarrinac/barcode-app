@@ -2,6 +2,7 @@ import { MovementType, RecordSource, SerialStatus } from '@prisma/client';
 
 import { mapSerialRecord } from '@/lib/api-mappers';
 import { jsonError, readJsonBody, readString } from '@/lib/api-utils';
+import { findModelNamesByProductCode, resolveModelName } from '@/lib/model-name';
 import { prisma } from '@/lib/prisma';
 import { buildSerialRecordWhere, readSerialRecordFilters } from '@/lib/serial-records-query';
 import { getCurrentUser, requireUser } from '@/lib/session';
@@ -48,8 +49,10 @@ export async function GET(request: Request) {
     prisma.serialRecord.count(),
   ]);
 
+  const modelNames = await findModelNamesByProductCode(serials.map((serial) => serial.productCode));
+
   return Response.json({
-    serials: serials.map(mapSerialRecord),
+    serials: serials.map((serial) => mapSerialRecord(serial, resolveModelName(serial, modelNames))),
     filteredTotal,
     total,
     page,
@@ -115,7 +118,10 @@ export async function POST(request: Request) {
       documentNo: readString(body, 'documentNo'),
       customerName: readString(body, 'customerName') || 'انبار مرکزی',
       productCode: productCode || product?.productCode || '',
-      modelName: requestedModel || product?.modelName || '',
+      // product_models wins over the value the device sent: a device whose cached model list is
+      // stale (or an older APK) posts the product code here, which then shows up as a number in
+      // the model column of every Excel export.
+      modelName: product?.modelName || requestedModel || '',
       trackingCode,
       serialNo,
       movement,
