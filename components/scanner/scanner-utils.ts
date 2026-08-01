@@ -1,8 +1,38 @@
-import type { ScannerStep } from '@/components/scanner/scanner-types';
+import type { ProductModel, ScannerStep } from '@/components/scanner/scanner-types';
 
 export const scannerStorageKey = 'barcode-app-scanner-session';
 export const scannerSuccessToastMs = 2800;
 export const scannerToastMs = 4500;
+
+const productModelsStorageKey = 'barcode-app-product-models';
+
+/**
+ * The model list is only reachable online, but the offline Excel backup is exactly what an operator
+ * saves when the connection is gone. Without a cached copy every row is exported with an empty
+ * model cell, so the last successful download is kept on the device.
+ */
+export function readCachedProductModels(): ProductModel[] {
+  try {
+    const cached = window.localStorage.getItem(productModelsStorageKey);
+    const parsed = cached ? (JSON.parse(cached) as unknown) : null;
+
+    return Array.isArray(parsed) ? (parsed as ProductModel[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function writeCachedProductModels(models: ProductModel[]) {
+  if (models.length === 0) {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(productModelsStorageKey, JSON.stringify(models));
+  } catch {
+    // A full or unavailable storage quota must not break scanning.
+  }
+}
 
 const persianDatePartsFormatter = new Intl.DateTimeFormat('en-US-u-ca-persian', {
   day: '2-digit',

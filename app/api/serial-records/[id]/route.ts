@@ -75,7 +75,7 @@ export async function PATCH(request: Request, ctx: RouteContext<'/api/serial-rec
         documentNo: readString(body, 'documentNo'),
         customerName: readString(body, 'customerName') || 'انبار مرکزی',
         productCode,
-        modelName: readString(body, 'model') || product?.modelName || '',
+        modelName: product?.modelName || readString(body, 'model') || '',
         trackingCode,
         serialNo,
         movement,

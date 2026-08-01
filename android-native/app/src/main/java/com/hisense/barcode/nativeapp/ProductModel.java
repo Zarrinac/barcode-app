@@ -1,5 +1,6 @@
 package com.hisense.barcode.nativeapp;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 final class ProductModel {
@@ -37,5 +38,20 @@ final class ProductModel {
                 object.optString("createdAt"),
                 object.optString("updatedAt"),
                 object.optString("status"));
+    }
+
+    /** Mirrors {@link #fromJson} so the list survives in the on-device cache. */
+    JSONObject toJson() throws JSONException {
+        JSONObject object = new JSONObject();
+
+        object.put("id", id);
+        object.put("model", model);
+        object.put("productCode", productCode);
+        object.put("warrantyCode", warrantyCode);
+        object.put("createdAt", createdAt);
+        object.put("updatedAt", updatedAt);
+        object.put("status", status);
+
+        return object;
     }
 }

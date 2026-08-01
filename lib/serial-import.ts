@@ -308,7 +308,9 @@ export async function importSerialRows({
         documentNo: row.documentNo,
         customerName: row.customerName || defaultCustomerName,
         productCode: row.productCode,
-        modelName: row.modelName || product?.modelName || '',
+        // The spreadsheet cell is a fallback only — offline backups carry whatever the device had
+        // cached, which is sometimes the product code rather than the model name.
+        modelName: product?.modelName || row.modelName || '',
         trackingCode: row.trackingCode,
         serialNo: row.serialNo,
         movement,
