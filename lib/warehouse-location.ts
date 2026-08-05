@@ -1,4 +1,4 @@
-import { persianCompareKey } from '@/lib/persian-text';
+import { warehouseNameKey } from '@/lib/persian-text';
 import { prisma } from '@/lib/prisma';
 
 export type InternalWarehouse = {
@@ -37,7 +37,7 @@ export async function loadInternalWarehouses() {
   const byName = new Map<string, InternalWarehouse>();
 
   for (const location of locations) {
-    byName.set(persianCompareKey(location.name), location);
+    byName.set(warehouseNameKey(location.name), location);
   }
 
   return byName;
@@ -47,7 +47,7 @@ export function matchInternalWarehouse(
   internalWarehouses: Map<string, InternalWarehouse>,
   customerName: string,
 ) {
-  return internalWarehouses.get(persianCompareKey(customerName)) ?? null;
+  return internalWarehouses.get(warehouseNameKey(customerName)) ?? null;
 }
 
 /** Single-record form of matchInternalWarehouse(), for routes that handle one scan at a time. */

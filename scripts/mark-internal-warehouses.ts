@@ -12,7 +12,7 @@ if (!hasProductionEnv && process.env.NODE_ENV !== 'production') {
 
 import { MovementType, SerialStatus } from '@prisma/client';
 
-import { persianCompareKey } from '../lib/persian-text';
+import { warehouseNameKey } from '../lib/persian-text';
 
 /**
  * Registers our own warehouses and reclassifies the rows that were recorded as exits while the
@@ -54,24 +54,28 @@ async function main() {
   // Matched on the normalized name so every spelling an operator typed is caught, which a plain
   // equality filter in the query would miss.
   const internalKeys = new Set(
-    internalWarehouses.map((warehouse) => persianCompareKey(warehouse.name)),
+    internalWarehouses.map((warehouse) => warehouseNameKey(warehouse.name)),
   );
   const candidates = await prisma.serialRecord.findMany({
     select: { id: true, customerName: true, movement: true },
     where: { movement: { not: MovementType.TRANSFER } },
   });
   const matched = candidates.filter((record) =>
-    internalKeys.has(persianCompareKey(record.customerName)),
+    internalKeys.has(warehouseNameKey(record.customerName)),
   );
+  // Broken down by the exact spelling and direction, because that is what tells a reviewer the
+  // match caught every variant of a warehouse and no customer who merely shares a word with one.
   const byName = new Map<string, number>();
 
   for (const record of matched) {
-    byName.set(record.customerName, (byName.get(record.customerName) ?? 0) + 1);
+    const key = `${record.customerName} [${record.movement}]`;
+
+    byName.set(key, (byName.get(key) ?? 0) + 1);
   }
 
   console.log(`\nردیف‌های قابل تبدیل به انتقال بین انبار: ${matched.length}`);
 
-  for (const [name, count] of byName) {
+  for (const [name, count] of [...byName].sort((a, b) => b[1] - a[1])) {
     console.log(`  ${name}: ${count}`);
   }
 

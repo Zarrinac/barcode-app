@@ -1,6 +1,6 @@
 import { MovementType, SerialStatus } from '@prisma/client';
 
-import { persianCompareKey } from '@/lib/persian-text';
+import { warehouseNameKey } from '@/lib/persian-text';
 import type { InternalWarehouse } from '@/lib/warehouse-location';
 
 /**
@@ -22,7 +22,7 @@ export type ExitScope = string;
 const realExitScope: ExitScope = 'exit';
 
 function transferScope(warehouseName: string): ExitScope {
-  return `transfer:${persianCompareKey(warehouseName)}`;
+  return `transfer:${warehouseNameKey(warehouseName)}`;
 }
 
 /** The scope an already-stored row occupies. */
