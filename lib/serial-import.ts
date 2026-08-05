@@ -1,7 +1,20 @@
 import { MovementType, RecordSource, SerialStatus } from '@prisma/client';
 
+import { normalizePersianText } from '@/lib/persian-text';
 import { prisma } from '@/lib/prisma';
-import { getDefaultWarehouseLocationId } from '@/lib/warehouse-location';
+import {
+  blockingScopes,
+  classifyDestination,
+  type ExitScope,
+  groupScopesByKey,
+  scopeForDestination,
+} from '@/lib/serial-duplicates';
+import {
+  getDefaultWarehouseLocationId,
+  type InternalWarehouse,
+  loadInternalWarehouses,
+  matchInternalWarehouse,
+} from '@/lib/warehouse-location';
 import { readFirstSheetGrid, XlsxReadError } from '@/lib/xlsx-read';
 
 /**
@@ -64,15 +77,6 @@ export type SerialImportReport = {
   rows: SerialImportRowReport[];
 };
 
-function normalizeLetters(value: string) {
-  return value
-    .replace(/[ي]/g, 'ی')
-    .replace(/[ك]/g, 'ک')
-    .replace(/‌/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-}
-
 function normalizeScan(value: string) {
   return value.replace(/[\r\n\t]/g, '').trim();
 }
@@ -112,7 +116,7 @@ function findHeaderRow(grid: string[][]) {
     const columns = new Map<HeaderField, number>();
 
     grid[index].forEach((cell, column) => {
-      const field = headerFields[normalizeLetters(cell) as keyof typeof headerFields];
+      const field = headerFields[normalizePersianText(cell) as keyof typeof headerFields];
 
       if (field && !columns.has(field)) {
         columns.set(field, column);
@@ -189,33 +193,46 @@ async function chunkedLookup<T>(values: string[], lookup: (chunk: string[]) => P
   return results;
 }
 
-async function findExistingKeys(serialNos: string[], trackingCodes: string[]) {
-  const existingSerialNos = new Set<string>();
-  const existingTrackingCodes = new Set<string>();
-
+/**
+ * Existing rows keyed by serial and tracking code, carrying the exit scope each one occupies
+ * rather than a bare "seen" flag — a row that only ever moved between our own warehouses must not
+ * stop the same serial from being imported as a real exit.
+ */
+async function findExistingScopes(serialNos: string[], trackingCodes: string[]) {
   const bySerial = await chunkedLookup(serialNos, (chunk) =>
     prisma.serialRecord.findMany({
-      select: { serialNo: true },
+      select: { serialNo: true, movement: true, customerName: true },
       where: { serialNo: { in: chunk } },
     }),
   );
-
-  for (const record of bySerial) {
-    existingSerialNos.add(record.serialNo);
-  }
-
   const byTracking = await chunkedLookup(trackingCodes, (chunk) =>
     prisma.serialRecord.findMany({
-      select: { trackingCode: true },
+      select: { trackingCode: true, movement: true, customerName: true },
       where: { trackingCode: { in: chunk } },
     }),
   );
 
-  for (const record of byTracking) {
-    existingTrackingCodes.add(record.trackingCode);
-  }
+  return {
+    serialScopes: groupScopesByKey(bySerial, (record) => record.serialNo),
+    trackingScopes: groupScopesByKey(byTracking, (record) => record.trackingCode),
+  };
+}
 
-  return { existingSerialNos, existingTrackingCodes };
+/** Records a key as taken in the scope this row occupies, so later rows in the batch see it. */
+function markScope(scopes: Map<string, Set<ExitScope>>, key: string, scope: ExitScope) {
+  const existing = scopes.get(key);
+
+  if (existing) {
+    existing.add(scope);
+  } else {
+    scopes.set(key, new Set([scope]));
+  }
+}
+
+function hasBlockingScope(scopes: Map<string, Set<ExitScope>>, key: string, scope: ExitScope[]) {
+  const existing = scopes.get(key);
+
+  return existing ? scope.some((candidate) => existing.has(candidate)) : false;
 }
 
 async function findProductsByCode(productCodes: string[]) {
@@ -250,11 +267,14 @@ export async function importSerialRows({
   dryRun: boolean;
 }): Promise<SerialImportReport> {
   const reports: SerialImportRowReport[] = [];
-  const insertable: SerialImportRow[] = [];
-  const seenSerialNos = new Set<string>();
-  const seenTrackingCodes = new Set<string>();
+  const insertable: { row: SerialImportRow; destination: InternalWarehouse | null }[] = [];
+  const seenSerialScopes = new Map<string, Set<ExitScope>>();
+  const seenTrackingScopes = new Map<string, Set<ExitScope>>();
 
-  const { existingSerialNos, existingTrackingCodes } = await findExistingKeys(
+  // A recovered backup can hold both an inter-warehouse transfer and a real exit, so the customer
+  // name on each row — not the movement the caller passed — decides what that row becomes.
+  const internalWarehouses = await loadInternalWarehouses();
+  const { serialScopes, trackingScopes } = await findExistingScopes(
     [...new Set(rows.map((row) => row.serialNo))],
     [...new Set(rows.map((row) => row.trackingCode).filter(isRealTrackingCode))].filter(Boolean),
   );
@@ -268,32 +288,42 @@ export async function importSerialRows({
       outcome: 'inserted',
     };
     const hasRealTrackingCode = Boolean(row.trackingCode) && isRealTrackingCode(row.trackingCode);
+    const destination = matchInternalWarehouse(internalWarehouses, row.customerName);
+    const blocking = blockingScopes(destination);
+    const ownScope = scopeForDestination(destination);
+    const transferNote = destination ? ` (انتقال به ${destination.name})` : '';
 
     if (!row.serialNo) {
       report.outcome = 'invalid';
       report.reason = 'شماره سریال خالی است.';
-    } else if (seenSerialNos.has(row.serialNo)) {
+    } else if (hasBlockingScope(seenSerialScopes, row.serialNo, blocking)) {
       report.outcome = 'duplicate-in-file';
-      report.reason = 'شماره سریال در همین فایل‌ها تکرار شده است.';
-    } else if (hasRealTrackingCode && seenTrackingCodes.has(row.trackingCode)) {
+      report.reason = `شماره سریال در همین فایل‌ها تکرار شده است.${transferNote}`;
+    } else if (
+      hasRealTrackingCode &&
+      hasBlockingScope(seenTrackingScopes, row.trackingCode, blocking)
+    ) {
       report.outcome = 'duplicate-in-file';
-      report.reason = 'کد رهگیری در همین فایل‌ها تکرار شده است.';
-    } else if (existingSerialNos.has(row.serialNo)) {
+      report.reason = `کد رهگیری در همین فایل‌ها تکرار شده است.${transferNote}`;
+    } else if (hasBlockingScope(serialScopes, row.serialNo, blocking)) {
       report.outcome = 'duplicate-in-db';
-      report.reason = 'شماره سریال قبلا در دیتابیس ثبت شده است.';
-    } else if (hasRealTrackingCode && existingTrackingCodes.has(row.trackingCode)) {
+      report.reason = `شماره سریال قبلا در دیتابیس ثبت شده است.${transferNote}`;
+    } else if (
+      hasRealTrackingCode &&
+      hasBlockingScope(trackingScopes, row.trackingCode, blocking)
+    ) {
       report.outcome = 'duplicate-in-db';
-      report.reason = 'کد رهگیری قبلا در دیتابیس ثبت شده است.';
+      report.reason = `کد رهگیری قبلا در دیتابیس ثبت شده است.${transferNote}`;
     }
 
     if (report.outcome === 'inserted') {
-      seenSerialNos.add(row.serialNo);
+      markScope(seenSerialScopes, row.serialNo, ownScope);
 
       if (hasRealTrackingCode) {
-        seenTrackingCodes.add(row.trackingCode);
+        markScope(seenTrackingScopes, row.trackingCode, ownScope);
       }
 
-      insertable.push(row);
+      insertable.push({ row, destination });
     }
 
     reports.push(report);
@@ -301,26 +331,27 @@ export async function importSerialRows({
 
   if (!dryRun && insertable.length > 0) {
     const products = await findProductsByCode([
-      ...new Set(insertable.map((row) => row.productCode).filter(Boolean)),
+      ...new Set(insertable.map((entry) => entry.row.productCode).filter(Boolean)),
     ]);
     const locationId = await getDefaultWarehouseLocationId();
-    const status =
+    const inboundStatus =
       movement === MovementType.OUTBOUND ? SerialStatus.EXITED : SerialStatus.REGISTERED;
-    const data = insertable.map((row) => {
+    const data = insertable.map(({ row, destination }) => {
       const product = products.get(row.productCode);
+      const transfer = destination ? classifyDestination(destination) : null;
 
       return {
         docDate: row.docDate,
         documentNo: row.documentNo,
-        customerName: row.customerName || defaultCustomerName,
+        customerName: destination?.name || row.customerName || defaultCustomerName,
         productCode: row.productCode,
         // The spreadsheet cell is a fallback only — offline backups carry whatever the device had
         // cached, which is sometimes the product code rather than the model name.
         modelName: product?.modelName || row.modelName || '',
         trackingCode: row.trackingCode,
         serialNo: row.serialNo,
-        movement,
-        status,
+        movement: transfer?.movement ?? movement,
+        status: transfer?.status ?? inboundStatus,
         source: RecordSource.EXCEL_IMPORT,
         productModelId: product?.id,
         locationId,

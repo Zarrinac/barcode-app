@@ -19,7 +19,8 @@
     "db:push": "prisma db push",
     "db:auth:seed": "tsx scripts/seed-auth-users.ts",
     "db:sample:import": "tsx scripts/import-legacy-sample.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "db:warehouses:internal": "tsx scripts/mark-internal-warehouses.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",

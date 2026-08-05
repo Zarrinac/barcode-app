@@ -1,7 +1,7 @@
 export type ViewId = 'serial-new' | 'serial-list' | 'product-list' | 'locations';
-export type MovementType = 'ورود' | 'خروج';
+export type MovementType = 'ورود' | 'خروج' | 'انتقال بین انبار';
 export type ScanMode = 'lookup' | 'inbound' | 'outbound';
-export type SerialStatus = 'ثبت شده' | 'ویرایش شده' | 'خروج شده';
+export type SerialStatus = 'ثبت شده' | 'ویرایش شده' | 'خروج شده' | 'انتقال بین انبار';
 
 export type ProductModel = {
   id: string;
@@ -36,6 +36,8 @@ export type LocationSummary = {
   code: string;
   count: number;
   isActive: boolean;
+  /** One of our own warehouses: scans addressed to it are transfers, not exits to a customer. */
+  isInternal: boolean;
 };
 
 export type BootstrapData = {

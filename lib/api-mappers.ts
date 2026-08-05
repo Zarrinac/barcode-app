@@ -41,6 +41,7 @@ export function mapLocation(location: WarehouseLocation & { _count?: { serials: 
     code: location.code,
     count: location._count?.serials ?? 0,
     isActive: location.isActive,
+    isInternal: location.isInternal,
   };
 }
 
@@ -58,21 +59,41 @@ export function mapSerialRecord(serial: SerialRecord, modelName?: string) {
     model: modelName || serial.modelName,
     trackingCode: serial.trackingCode,
     serialNo: serial.serialNo,
-    movement: serial.movement === 'OUTBOUND' ? 'خروج' : 'ورود',
+    movement: movementLabels[serial.movement],
     createdAt: toPersianDate(serial.createdAt),
     createdBy: serial.createdBy || '-',
     updatedAt: serial.updatedAt ? toPersianDate(serial.updatedAt) : '',
     updatedBy: serial.updatedBy || '-',
     status:
-      serial.legacyFlag === 1 ? 'ویرایش شده' : serial.status === 'EXITED' ? 'خروج شده' : 'ثبت شده',
+      serial.legacyFlag === 1
+        ? 'ویرایش شده'
+        : serial.status === 'TRANSFERRED'
+          ? 'انتقال بین انبار'
+          : serial.status === 'EXITED'
+            ? 'خروج شده'
+            : 'ثبت شده',
   };
 }
 
+export const movementLabels: Record<MovementType, string> = {
+  [MovementType.INBOUND]: 'ورود',
+  [MovementType.OUTBOUND]: 'خروج',
+  [MovementType.TRANSFER]: 'انتقال بین انبار',
+};
+
 export function toPrismaMovement(value: string) {
+  if (value === movementLabels[MovementType.TRANSFER]) {
+    return MovementType.TRANSFER;
+  }
+
   return value === 'خروج' ? MovementType.OUTBOUND : MovementType.INBOUND;
 }
 
 export function toPrismaSerialStatus(value: string) {
+  if (value === 'انتقال بین انبار') {
+    return SerialStatus.TRANSFERRED;
+  }
+
   if (value === 'خروج شده') {
     return SerialStatus.EXITED;
   }

@@ -1,3 +1,5 @@
+import { MovementType, SerialStatus } from '@prisma/client';
+
 import { mapSerialRecord, toPrismaMovement } from '@/lib/api-mappers';
 import {
   isRecordNotFoundError,
@@ -7,7 +9,9 @@ import {
   readString,
 } from '@/lib/api-utils';
 import { prisma } from '@/lib/prisma';
+import { isBlockedBy, scopeOfRecord } from '@/lib/serial-duplicates';
 import { getCurrentUser, requireManager } from '@/lib/session';
+import { findInternalWarehouse } from '@/lib/warehouse-location';
 
 export const dynamic = 'force-dynamic';
 
@@ -44,11 +48,23 @@ export async function PATCH(request: Request, ctx: RouteContext<'/api/serial-rec
         orderBy: { id: 'asc' },
       })
     : null;
-  const movement = toPrismaMovement(readString(body, 'movement'));
-  const duplicate = await prisma.serialRecord.findFirst({
+  const requestedCustomerName = readString(body, 'customerName');
+  // The destination decides the movement here too: pointing a row at one of our warehouses makes it
+  // a transfer, and pointing it back at a customer makes it a real exit again. Only those two cases
+  // are rewritten — a legacy INBOUND row edited for a typo keeps its direction.
+  const destination = await findInternalWarehouse(requestedCustomerName);
+  const requestedMovement = toPrismaMovement(readString(body, 'movement'));
+  const movement = destination
+    ? MovementType.TRANSFER
+    : requestedMovement === MovementType.TRANSFER
+      ? MovementType.OUTBOUND
+      : requestedMovement;
+  const existing = await prisma.serialRecord.findMany({
     select: {
       serialNo: true,
       trackingCode: true,
+      movement: true,
+      customerName: true,
     },
     where: {
       id: { not: id },
@@ -59,11 +75,23 @@ export async function PATCH(request: Request, ctx: RouteContext<'/api/serial-rec
     },
   });
 
-  if (duplicate?.serialNo === serialNo) {
+  if (
+    isBlockedBy(
+      existing.filter((record) => record.serialNo === serialNo).map(scopeOfRecord),
+      destination,
+    )
+  ) {
     return jsonError('شماره سریال قبلا ثبت شده است.', 409);
   }
 
-  if (duplicate?.trackingCode === trackingCode) {
+  if (
+    trackingCode &&
+    isRealTrackingCode(trackingCode) &&
+    isBlockedBy(
+      existing.filter((record) => record.trackingCode === trackingCode).map(scopeOfRecord),
+      destination,
+    )
+  ) {
     return jsonError('کد رهگیری قبلا ثبت شده است.', 409);
   }
 
@@ -73,12 +101,20 @@ export async function PATCH(request: Request, ctx: RouteContext<'/api/serial-rec
       data: {
         docDate: readString(body, 'date'),
         documentNo: readString(body, 'documentNo'),
-        customerName: readString(body, 'customerName') || 'انبار مرکزی',
+        customerName: destination?.name || requestedCustomerName || 'انبار مرکزی',
         productCode,
         modelName: product?.modelName || readString(body, 'model') || '',
         trackingCode,
         serialNo,
         movement,
+        // Left undefined for INBOUND so an edited legacy row keeps whatever status it was imported
+        // with; the two directions this route can rewrite get the status that matches.
+        status:
+          movement === MovementType.TRANSFER
+            ? SerialStatus.TRANSFERRED
+            : movement === MovementType.OUTBOUND
+              ? SerialStatus.EXITED
+              : undefined,
         productModelId: product?.id,
         legacyFlag: 1,
         updatedAt: new Date(),
