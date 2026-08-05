@@ -1,0 +1,132 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+  USER
+}
+
+enum MovementType {
+  INBOUND
+  OUTBOUND
+  // Goods moving between two of our own warehouses. They leave one building but never leave the
+  // company, so the real exit to a customer still has to be recordable afterwards — the duplicate
+  // checks in lib/serial-duplicates.ts skip TRANSFER rows for exactly that reason.
+  TRANSFER
+}
+
+enum SerialStatus {
+  REGISTERED
+  EDITED
+  EXITED
+  CANCELLED
+  TRANSFERRED
+}
+
+enum RecordSource {
+  MANUAL
+  PDA
+  LEGACY_IMPORT
+  EXCEL_IMPORT
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  uuid         String   @unique @default(uuid()) @db.Uuid
+  username     String   @unique
+  passwordHash String
+  role         UserRole @default(USER)
+  isActive     Boolean  @default(true)
+  legacyFlag   Int      @default(0)
+  createdAt    DateTime @default(now())
+  createdBy    String?
+  updatedAt    DateTime @updatedAt
+  updatedBy    String?
+
+  @@index([role])
+  @@index([isActive])
+  @@map("users")
+}
+
+model ProductModel {
+  id           Int            @id @default(autoincrement())
+  modelName    String
+  productCode  String
+  warrantyCode String?
+  isActive     Boolean        @default(true)
+  legacyFlag   Int            @default(0)
+  source       RecordSource   @default(MANUAL)
+  createdAt    DateTime       @default(now())
+  createdBy    String?
+  updatedAt    DateTime?      @updatedAt
+  updatedBy    String?
+  serials      SerialRecord[]
+
+  @@index([productCode])
+  @@index([modelName])
+  @@index([isActive])
+  @@map("product_models")
+}
+
+model WarehouseLocation {
+  id          Int            @id @default(autoincrement())
+  code        String         @unique
+  name        String
+  description String?
+  isActive    Boolean        @default(true)
+  // One of our own warehouses rather than a customer. A scan whose customer name matches an
+  // internal warehouse is recorded as a TRANSFER instead of an exit.
+  isInternal  Boolean        @default(false)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  serials     SerialRecord[]
+
+  @@index([isActive])
+  @@index([isInternal])
+  @@map("warehouse_locations")
+}
+
+model SerialRecord {
+  id             Int                @id @default(autoincrement())
+  docDate        String
+  documentNo     String
+  customerName   String
+  productCode    String
+  modelName      String
+  trackingCode   String
+  serialNo       String
+  movement       MovementType       @default(INBOUND)
+  status         SerialStatus       @default(REGISTERED)
+  source         RecordSource       @default(MANUAL)
+  productModelId Int?
+  locationId     Int?
+  legacyFlag     Int                @default(0)
+  createdAt      DateTime           @default(now())
+  createdBy      String?
+  updatedAt      DateTime?
+  updatedBy      String?
+  productModel   ProductModel?      @relation(fields: [productModelId], references: [id], onDelete: SetNull)
+  location       WarehouseLocation? @relation(fields: [locationId], references: [id], onDelete: SetNull)
+
+  @@index([serialNo])
+  @@index([trackingCode])
+  @@index([productCode])
+  @@index([modelName])
+  @@index([documentNo])
+  @@index([docDate])
+  @@index([movement])
+  @@index([status])
+  @@index([source])
+  @@index([createdAt])
+  @@index([productModelId])
+  @@index([locationId])
+  @@index([serialNo, productCode])
+  @@index([documentNo, docDate])
+  @@map("serial_records")
+}
