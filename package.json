@@ -20,7 +20,8 @@
     "db:auth:seed": "tsx scripts/seed-auth-users.ts",
     "db:sample:import": "tsx scripts/import-legacy-sample.ts",
     "prepare": "husky",
-    "db:warehouses:internal": "tsx scripts/mark-internal-warehouses.ts"
+    "db:warehouses:internal": "tsx scripts/mark-internal-warehouses.ts",
+    "db:legacy:outbound": "tsx scripts/backfill-legacy-outbound.ts"
   },
   "dependencies": {
     "@capacitor/android": "^8.3.4",

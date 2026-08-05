@@ -27,9 +27,16 @@ import { warehouseNameKey } from '../lib/persian-text';
  *   npx tsx scripts/mark-internal-warehouses.ts --commit   # apply
  */
 
+/**
+ * Re-runnable: adding a name here and running it again registers that warehouse and converts the
+ * rows already addressed to it. The two service warehouses carry almost no history — they are
+ * listed so a serial sent there in future does not consume its one real exit.
+ */
 const internalWarehouses = [
   { code: 'QAZVIN', name: 'انبار قزوین' },
   { code: 'ZARRIN-SHOURABAD', name: 'انبار زرین شورآباد' },
+  { code: 'TECH-SERVICE', name: 'انبار فنی خدمات' },
+  { code: 'AFTER-SALES', name: 'انبار خدمات پس ازفروش' },
 ];
 
 const isCommit = process.argv.includes('--commit');

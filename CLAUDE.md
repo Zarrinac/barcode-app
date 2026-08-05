@@ -41,9 +41,11 @@ if (auth instanceof Response) return auth;
 
 ## Movement is decided server-side: OUTBOUND, or TRANSFER between our own warehouses
 
-A serial is only ever recorded as it **leaves** the warehouse, so `POST /api/serial-records` **ignores the request's `movement`**. Deciding it server-side keeps new rows correct even when an M3 device is still running an older APK that sends `ورود`. Records created before 2026-07-27 are deliberately left as `INBOUND` — there is no backfill, do not add one without asking. `MovementType` stays in the schema because [app/api/scans/route.ts](app/api/scans/route.ts) supports both directions for the dashboard scan panel.
+A serial is only ever recorded as it **leaves** the warehouse, so `POST /api/serial-records` **ignores the request's `movement`**. Deciding it server-side keeps new rows correct even when an M3 device is still running an older APK that sends `ورود`. `MovementType` stays in the schema because [app/api/scans/route.ts](app/api/scans/route.ts) supports both directions for the dashboard scan panel.
 
-**Not every exit is a real exit.** We own two warehouses (`انبار قزوین`, `انبار زرین شورآباد`) and move stock between them; the operator scans the goods out of the first one even though they never leave the company. Those rows are written as `TRANSFER` + `TRANSFERRED` instead of `OUTBOUND` + `EXITED`, decided from the customer name: any `warehouse_locations` row flagged `isInternal` is one of ours ([lib/warehouse-location.ts](lib/warehouse-location.ts), matched through `normalizePersianText()` in [lib/persian-text.ts](lib/persian-text.ts) so the Arabic ك/ي still resolve). The destination's own name is what gets stored, so one warehouse cannot fragment across spellings.
+The legacy `INBOUND` rows that predated that fix were left alone until **2026-08-05**, when the user asked for one consistent history instead; `npm run db:legacy:outbound` converted them ([scripts/backfill-legacy-outbound.ts](scripts/backfill-legacy-outbound.ts), already applied and idempotent). `EDITED`/`CANCELLED` statuses were preserved, only `REGISTERED` moved to `EXITED`. Production now holds no `INBOUND` rows at all. This never affected duplicate checks either way — only `TRANSFER` rows are skipped there.
+
+**Not every exit is a real exit.** We own four locations — `انبار قزوین`, `انبار زرین شورآباد`, plus the service warehouses `انبار فنی خدمات` and `انبار خدمات پس ازفروش` — and move stock between them; the operator scans the goods out of the first one even though they never leave the company. Those rows are written as `TRANSFER` + `TRANSFERRED` instead of `OUTBOUND` + `EXITED`, decided from the customer name: any `warehouse_locations` row flagged `isInternal` is one of ours ([lib/warehouse-location.ts](lib/warehouse-location.ts), matched through `normalizePersianText()` in [lib/persian-text.ts](lib/persian-text.ts) so the Arabic ك/ي still resolve). The destination's own name is what gets stored, so one warehouse cannot fragment across spellings.
 
 [lib/serial-duplicates.ts](lib/serial-duplicates.ts) then scopes every duplicate check — `POST`, `PATCH`, `/duplicates`, and the Excel import all share it:
 
@@ -52,7 +54,9 @@ A serial is only ever recorded as it **leaves** the warehouse, so `POST /api/ser
 
 That is what lets the second warehouse record the real exit to the customer later — before this, the transfer row made the serial look already used and the scan was rejected with «شماره سریال قبلا ثبت شده است.».
 
-`npm run db:warehouses:internal` registers the two warehouses and previews the rows it would reclassify; add `-- --commit` to apply. It converted the pre-existing `انبار زرین شورآباد` exits to transfers.
+`npm run db:warehouses:internal` registers the warehouses and previews the rows it would reclassify; add `-- --commit` to apply. It is **re-runnable** — that is how you add a warehouse: append it to the list in [scripts/mark-internal-warehouses.ts](scripts/mark-internal-warehouses.ts) and run it again. It converted 3095 pre-existing `انبار زرین شورآباد` rows to transfers.
+
+Names are matched on `warehouseNameKey()`, which drops whitespace and punctuation rather than normalizing it, because that one warehouse reached the database under four spellings (`انبار زرین شورآباد`, `انبارزرین شورآباد`, `انبار زرین شور آباد`, `انبار زرین - شورآباد`). Only whole keys are compared, never substrings, so a customer sharing a word with a warehouse (`شرکت صنایع زرین نمای کاسپین.قزوین`) is unaffected — check any new name against the real customer list before adding it.
 
 ## Offline Excel recovery
 
@@ -83,6 +87,7 @@ Then copy `android-native/app/build/outputs/apk/debug/app-debug.apk` to `public/
 - `npm run dev` — dev server on `0.0.0.0:3000`.
 - `npm run db:push` then `npm run db:auth:seed` — set up DB (seed is local-dev only).
 - `npm run db:warehouses:internal` — preview the internal-warehouse setup; `-- --commit` applies it.
+- `npm run db:legacy:outbound` — preview the legacy INBOUND→OUTBOUND conversion; `-- --commit` applies it.
 - `npm run lint` / `npm run format`.
 - `npm run deploy:check` — production-readiness check + build.
 
