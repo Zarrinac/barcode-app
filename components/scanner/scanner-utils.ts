@@ -62,21 +62,19 @@ export function writeCachedInternalWarehouses(names: string[]) {
   }
 }
 
-/** Mirrors normalizePersianText() on the server so the device labels a transfer the same way. */
+/** Mirrors warehouseNameKey() on the server so the device labels a transfer the same way. */
 export function isInternalWarehouseName(names: string[], value: string) {
-  const key = normalizePersianName(value);
+  const key = warehouseNameKey(value);
 
-  return key.length > 0 && names.some((name) => normalizePersianName(name) === key);
+  return key.length > 0 && names.some((name) => warehouseNameKey(name) === key);
 }
 
-function normalizePersianName(value: string) {
+function warehouseNameKey(value: string) {
   return value
     .replace(/[ي]/g, 'ی')
     .replace(/[ك]/g, 'ک')
-    .replace(/‌/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
+    .toLowerCase()
+    .replace(/[\s\p{P}\p{S}]/gu, '');
 }
 
 const persianDatePartsFormatter = new Intl.DateTimeFormat('en-US-u-ca-persian', {
