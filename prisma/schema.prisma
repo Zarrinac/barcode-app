@@ -15,6 +15,10 @@ enum UserRole {
 enum MovementType {
   INBOUND
   OUTBOUND
+  // Goods moving between two of our own warehouses. They leave one building but never leave the
+  // company, so the real exit to a customer still has to be recordable afterwards — the duplicate
+  // checks in lib/serial-duplicates.ts skip TRANSFER rows for exactly that reason.
+  TRANSFER
 }
 
 enum SerialStatus {
@@ -22,6 +26,7 @@ enum SerialStatus {
   EDITED
   EXITED
   CANCELLED
+  TRANSFERRED
 }
 
 enum RecordSource {
@@ -75,11 +80,15 @@ model WarehouseLocation {
   name        String
   description String?
   isActive    Boolean        @default(true)
+  // One of our own warehouses rather than a customer. A scan whose customer name matches an
+  // internal warehouse is recorded as a TRANSFER instead of an exit.
+  isInternal  Boolean        @default(false)
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
   serials     SerialRecord[]
 
   @@index([isActive])
+  @@index([isInternal])
   @@map("warehouse_locations")
 }
 

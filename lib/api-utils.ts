@@ -39,3 +39,14 @@ export function readString(payload: Record<string, unknown>, key: string) {
 
   return typeof value === 'string' ? value.trim() : '';
 }
+
+/** Absent keys fall back rather than reading as false, so a partial payload cannot clear a flag. */
+export function readBoolean(payload: Record<string, unknown>, key: string, fallback = false) {
+  const value = payload[key];
+
+  if (typeof value === 'boolean') {
+    return value;
+  }
+
+  return typeof value === 'string' ? value === 'true' : fallback;
+}

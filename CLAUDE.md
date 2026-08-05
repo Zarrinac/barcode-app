@@ -39,9 +39,20 @@ if (auth instanceof Response) return auth;
 
 `requireUser` / `requireManager` / `requireAdmin` are applied to **every** route except `login`, `logout`, `session`. `GET /api/bootstrap` withholds the `users` array from non-admins rather than rejecting them. Deletes and updates map Prisma `P2025` to a 404 via `isRecordNotFoundError()` in [lib/api-utils.ts](lib/api-utils.ts) — without it a stale dashboard row produces a bare 500 with an empty body.
 
-## Movement is always OUTBOUND
+## Movement is decided server-side: OUTBOUND, or TRANSFER between our own warehouses
 
-A serial is only ever recorded as it **leaves** the warehouse. `POST /api/serial-records` therefore **ignores the request's `movement`** and always writes `OUTBOUND` + `EXITED`. Deciding it server-side keeps new rows correct even when an M3 device is still running an older APK that sends `ورود`. Records created before 2026-07-27 are deliberately left as `INBOUND` — there is no backfill, do not add one without asking. `MovementType` stays in the schema because [app/api/scans/route.ts](app/api/scans/route.ts) supports both directions for the dashboard scan panel.
+A serial is only ever recorded as it **leaves** the warehouse, so `POST /api/serial-records` **ignores the request's `movement`**. Deciding it server-side keeps new rows correct even when an M3 device is still running an older APK that sends `ورود`. Records created before 2026-07-27 are deliberately left as `INBOUND` — there is no backfill, do not add one without asking. `MovementType` stays in the schema because [app/api/scans/route.ts](app/api/scans/route.ts) supports both directions for the dashboard scan panel.
+
+**Not every exit is a real exit.** We own two warehouses (`انبار قزوین`, `انبار زرین شورآباد`) and move stock between them; the operator scans the goods out of the first one even though they never leave the company. Those rows are written as `TRANSFER` + `TRANSFERRED` instead of `OUTBOUND` + `EXITED`, decided from the customer name: any `warehouse_locations` row flagged `isInternal` is one of ours ([lib/warehouse-location.ts](lib/warehouse-location.ts), matched through `normalizePersianText()` in [lib/persian-text.ts](lib/persian-text.ts) so the Arabic ك/ي still resolve). The destination's own name is what gets stored, so one warehouse cannot fragment across spellings.
+
+[lib/serial-duplicates.ts](lib/serial-duplicates.ts) then scopes every duplicate check — `POST`, `PATCH`, `/duplicates`, and the Excel import all share it:
+
+- a **real exit** is blocked by any earlier non-transfer row (unchanged, legacy `INBOUND` rows included);
+- a **transfer** is blocked by an earlier transfer to the _same_ warehouse (a re-scanned batch) and by any real exit.
+
+That is what lets the second warehouse record the real exit to the customer later — before this, the transfer row made the serial look already used and the scan was rejected with «شماره سریال قبلا ثبت شده است.».
+
+`npm run db:warehouses:internal` registers the two warehouses and previews the rows it would reclassify; add `-- --commit` to apply. It converted the pre-existing `انبار زرین شورآباد` exits to transfers.
 
 ## Offline Excel recovery
 
@@ -71,6 +82,7 @@ Then copy `android-native/app/build/outputs/apk/debug/app-debug.apk` to `public/
 
 - `npm run dev` — dev server on `0.0.0.0:3000`.
 - `npm run db:push` then `npm run db:auth:seed` — set up DB (seed is local-dev only).
+- `npm run db:warehouses:internal` — preview the internal-warehouse setup; `-- --commit` applies it.
 - `npm run lint` / `npm run format`.
 - `npm run deploy:check` — production-readiness check + build.
 

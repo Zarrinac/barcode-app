@@ -8,6 +8,7 @@ import type {
   AcPart,
   AuthUser,
   DuplicateSerialsResponse,
+  LocationsResponse,
   LoginResponse,
   ProductModel,
   ProductModelsResponse,
@@ -20,12 +21,15 @@ import {
   apiRequest,
   formatPersianDate,
   getDefaultStatusMessage,
+  isInternalWarehouseName,
   normalizeNumberInput,
   normalizeScan,
+  readCachedInternalWarehouses,
   readCachedProductModels,
   scannerStorageKey,
   scannerSuccessToastMs,
   scannerToastMs,
+  writeCachedInternalWarehouses,
   writeCachedProductModels,
 } from '@/components/scanner/scanner-utils';
 import { APP_VERSION } from '@/lib/app-info';
@@ -76,6 +80,7 @@ export default function ScannerPage() {
   const [acPart, setAcPart] = useState<AcPart>(null);
   const [rows, setRows] = useState<ScanRow[]>([]);
   const [models, setModels] = useState<ProductModel[]>([]);
+  const [internalWarehouses, setInternalWarehouses] = useState<string[]>([]);
   const [currentUser, setCurrentUser] = useState<AuthUser | null>(null);
   const [statusMessage, setStatusMessage] = useState('نام کاربری و رمز عبور را وارد کنید.');
   const [statusTone, setStatusTone] = useState<'default' | 'error'>('default');
@@ -102,6 +107,11 @@ export default function ScannerPage() {
   }, [models]);
 
   const currentModel = modelByProductCode.get(productCode);
+  // Shipping to one of our own warehouses is an internal transfer: the goods leave this building
+  // but not the company, so the destination warehouse still has to be able to scan the real exit
+  // later. The server reaches the same verdict from the customer name — this only tells the
+  // operator which of the two they are recording.
+  const isInternalTransfer = isInternalWarehouseName(internalWarehouses, customerName);
 
   useEffect(() => {
     if (step === 'login') {
@@ -201,6 +211,32 @@ export default function ScannerPage() {
 
         setStatusMessage('لیست مدل کالا دریافت نشد.');
         setStatusTone('error');
+      });
+  }, [step]);
+
+  useEffect(() => {
+    if (step === 'login') {
+      return;
+    }
+
+    apiRequest<LocationsResponse>('/api/locations')
+      .then((data) => {
+        const names = data.locations
+          .filter((location) => location.isInternal && location.isActive)
+          .map((location) => location.name);
+
+        setInternalWarehouses(names);
+        writeCachedInternalWarehouses(names);
+      })
+      .catch(() => {
+        // Offline, the last downloaded list is what lets the operator pick the exact warehouse
+        // name — a typed near-miss would land in the Excel backup as an ordinary customer and
+        // import as a real exit.
+        const cached = readCachedInternalWarehouses();
+
+        if (cached.length > 0) {
+          setInternalWarehouses(cached);
+        }
       });
   }, [step]);
 
@@ -444,6 +480,9 @@ export default function ScannerPage() {
         '/api/serial-records/duplicates',
         {
           body: JSON.stringify({
+            // The destination scopes the check: a serial that has only ever moved between our own
+            // warehouses is not a duplicate for the warehouse now shipping it to a customer.
+            customerName,
             serialNos: rows.map((row) => row.serialNo),
             trackingCodes: rows
               .map((row) => row.trackingCode)
@@ -679,7 +718,39 @@ export default function ScannerPage() {
             value={customerName}
             onChange={(event) => setCustomerName(event.target.value)}
             placeholder="نام مشتری"
+            list="internal-warehouse-names"
           />
+          <datalist id="internal-warehouse-names">
+            {internalWarehouses.map((name) => (
+              <option key={name} value={name} />
+            ))}
+          </datalist>
+          {internalWarehouses.length > 0 && (
+            // Tapping the warehouse instead of typing it keeps the name character-for-character the
+            // one the server matches, which is what turns the row into a transfer.
+            <div className={'flex flex-wrap gap-2'}>
+              {internalWarehouses.map((name) => (
+                <button
+                  key={name}
+                  className={cx(
+                    'min-h-10 rounded-xl border px-3 text-base font-bold',
+                    isInternalWarehouseName([name], customerName)
+                      ? 'border-dcode-red-500 bg-dcode-red-500/10 text-dcode-red-700'
+                      : 'border-dcode-900/12 bg-app-surface-soft text-app-muted',
+                  )}
+                  onClick={() => setCustomerName(name)}
+                  type="button"
+                >
+                  {name}
+                </button>
+              ))}
+            </div>
+          )}
+          {isInternalTransfer && (
+            <p className={'text-right text-base font-bold text-dcode-red-700'}>
+              انتقال بین انبار — این سند خروج به مشتری ثبت نمی‌شود.
+            </p>
+          )}
           <div className={'mt-1 grid grid-cols-[1.2fr_0.8fr] gap-2.5'}>
             <button
               className={cx(

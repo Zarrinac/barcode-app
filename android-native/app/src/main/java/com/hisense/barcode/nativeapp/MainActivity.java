@@ -861,6 +861,10 @@ public final class MainActivity extends Activity {
 
                         duplicateBody.put("serialNos", serialNos);
                         duplicateBody.put("trackingCodes", trackingCodes);
+                        // Every row in a batch carries the same destination. Sending it scopes the
+                        // check: a serial that has only moved between our own warehouses is not a
+                        // duplicate for the warehouse now shipping it out to a customer.
+                        duplicateBody.put("customerName", rows.isEmpty() ? "" : rows.get(0).customerName);
 
                         JSONObject duplicates =
                                 apiClient.post("/api/serial-records/duplicates", duplicateBody);

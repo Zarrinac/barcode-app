@@ -3,6 +3,7 @@ import {
   isRecordNotFoundError,
   jsonError,
   parseId,
+  readBoolean,
   readJsonBody,
   readString,
 } from '@/lib/api-utils';
@@ -40,6 +41,9 @@ export async function PATCH(request: Request, ctx: RouteContext<'/api/locations/
         code,
         name,
         description: readString(body, 'description') || null,
+        // Left alone when the payload omits it, so an edit from a form that predates the flag
+        // cannot silently turn a warehouse back into a customer destination.
+        isInternal: 'isInternal' in body ? readBoolean(body, 'isInternal') : undefined,
       },
       include: {
         _count: {

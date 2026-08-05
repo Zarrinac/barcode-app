@@ -34,6 +34,51 @@ export function writeCachedProductModels(models: ProductModel[]) {
   }
 }
 
+const internalWarehousesStorageKey = 'barcode-app-internal-warehouses';
+
+/**
+ * Names of our own warehouses, cached for the same reason the model list is: an operator moving
+ * stock between warehouses on a device that has lost its connection still needs the exact name, or
+ * the recovered Excel row imports as a real exit instead of a transfer.
+ */
+export function readCachedInternalWarehouses(): string[] {
+  try {
+    const cached = window.localStorage.getItem(internalWarehousesStorageKey);
+    const parsed = cached ? (JSON.parse(cached) as unknown) : null;
+
+    return Array.isArray(parsed)
+      ? parsed.filter((name): name is string => typeof name === 'string')
+      : [];
+  } catch {
+    return [];
+  }
+}
+
+export function writeCachedInternalWarehouses(names: string[]) {
+  try {
+    window.localStorage.setItem(internalWarehousesStorageKey, JSON.stringify(names));
+  } catch {
+    // A full or unavailable storage quota must not break scanning.
+  }
+}
+
+/** Mirrors normalizePersianText() on the server so the device labels a transfer the same way. */
+export function isInternalWarehouseName(names: string[], value: string) {
+  const key = normalizePersianName(value);
+
+  return key.length > 0 && names.some((name) => normalizePersianName(name) === key);
+}
+
+function normalizePersianName(value: string) {
+  return value
+    .replace(/[ي]/g, 'ی')
+    .replace(/[ك]/g, 'ک')
+    .replace(/‌/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .toLowerCase();
+}
+
 const persianDatePartsFormatter = new Intl.DateTimeFormat('en-US-u-ca-persian', {
   day: '2-digit',
   month: '2-digit',

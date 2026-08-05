@@ -1,5 +1,5 @@
 import { mapLocation } from '@/lib/api-mappers';
-import { jsonError, readJsonBody, readString } from '@/lib/api-utils';
+import { jsonError, readBoolean, readJsonBody, readString } from '@/lib/api-utils';
 import { prisma } from '@/lib/prisma';
 import { requireManager, requireUser } from '@/lib/session';
 
@@ -44,6 +44,8 @@ export async function POST(request: Request) {
       code,
       name,
       description: readString(body, 'description') || null,
+      // Marks the location as one of ours: scans addressed to it become transfers, not exits.
+      isInternal: readBoolean(body, 'isInternal'),
     },
     include: {
       _count: {

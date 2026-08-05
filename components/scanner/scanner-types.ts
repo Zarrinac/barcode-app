@@ -32,6 +32,19 @@ export type ProductModelsResponse = {
   models: ProductModel[];
 };
 
+export type WarehouseLocationSummary = {
+  id: string;
+  name: string;
+  code: string;
+  count: number;
+  isActive: boolean;
+  isInternal: boolean;
+};
+
+export type LocationsResponse = {
+  locations: WarehouseLocationSummary[];
+};
+
 export type DuplicateSerialsResponse = {
   serialNos: string[];
   trackingCodes: string[];

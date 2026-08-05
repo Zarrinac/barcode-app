@@ -1,6 +1,8 @@
-import { jsonError, readJsonBody } from '@/lib/api-utils';
+import { jsonError, readJsonBody, readString } from '@/lib/api-utils';
 import { prisma } from '@/lib/prisma';
+import { groupScopesByKey, isBlockedBy } from '@/lib/serial-duplicates';
 import { getCurrentUser } from '@/lib/session';
+import { findInternalWarehouse } from '@/lib/warehouse-location';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,10 +39,16 @@ export async function POST(request: Request) {
     return Response.json({ serialNos: [], trackingCodes: [] });
   }
 
-  const duplicates = await prisma.serialRecord.findMany({
+  // Batches sent by an older APK carry no customer name; those are checked as real exits, which is
+  // the stricter reading. POST /api/serial-records always knows the destination and stays the
+  // authoritative guard — this endpoint only saves the operator a round trip per row.
+  const destination = await findInternalWarehouse(readString(body, 'customerName'));
+  const candidates = await prisma.serialRecord.findMany({
     select: {
       serialNo: true,
       trackingCode: true,
+      movement: true,
+      customerName: true,
     },
     where: {
       OR: [
@@ -50,21 +58,17 @@ export async function POST(request: Request) {
     },
   });
 
-  const duplicateSerialNos = new Set<string>();
-  const duplicateTrackingCodes = new Set<string>();
-
-  for (const duplicate of duplicates) {
-    if (serialNos.includes(duplicate.serialNo)) {
-      duplicateSerialNos.add(duplicate.serialNo);
-    }
-
-    if (trackingCodes.includes(duplicate.trackingCode)) {
-      duplicateTrackingCodes.add(duplicate.trackingCode);
-    }
-  }
+  const scopesBySerialNo = groupScopesByKey(candidates, (record) => record.serialNo);
+  const scopesByTrackingCode = groupScopesByKey(candidates, (record) => record.trackingCode);
+  const duplicateSerialNos = serialNos.filter((serialNo) =>
+    isBlockedBy(scopesBySerialNo.get(serialNo) ?? [], destination),
+  );
+  const duplicateTrackingCodes = trackingCodes.filter((trackingCode) =>
+    isBlockedBy(scopesByTrackingCode.get(trackingCode) ?? [], destination),
+  );
 
   return Response.json({
-    serialNos: Array.from(duplicateSerialNos),
-    trackingCodes: Array.from(duplicateTrackingCodes),
+    serialNos: duplicateSerialNos,
+    trackingCodes: duplicateTrackingCodes,
   });
 }

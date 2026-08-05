@@ -230,8 +230,11 @@ export default function Home() {
     };
   }, []);
 
+  // Every read API requires a session, so this has to wait for the login to land and re-run after
+  // it: keyed on hasHydrated alone it fired once against a 401 and left the dashboard empty until
+  // the operator pressed refresh.
   useEffect(() => {
-    if (!hasHydrated) {
+    if (!hasHydrated || !isLoggedIn) {
       return;
     }
 
@@ -254,7 +257,7 @@ export default function Home() {
     void loadData();
 
     return () => controller.abort();
-  }, [hasHydrated, loadBootstrapData]);
+  }, [hasHydrated, isLoggedIn, loadBootstrapData]);
 
   useEffect(() => {
     if (!statusMessage) {
@@ -332,7 +335,7 @@ export default function Home() {
   }, [serialSearch]);
 
   useEffect(() => {
-    if (!hasHydrated) {
+    if (!hasHydrated || !isLoggedIn) {
       return;
     }
 
@@ -390,6 +393,7 @@ export default function Home() {
     return () => controller.abort();
   }, [
     hasHydrated,
+    isLoggedIn,
     serialDateFrom,
     serialDateTo,
     serialPage,
