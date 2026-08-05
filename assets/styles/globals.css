@@ -1,0 +1,100 @@
+@import 'tailwindcss';
+
+@font-face {
+  font-family: 'IRANSansXV';
+  src:
+    url('/fonts/IRANSansXV.woff2') format('woff2-variations'),
+    url('/fonts/IRANSansXV.woff') format('woff');
+  font-weight: 100 1000;
+  font-style: normal;
+  font-display: swap;
+  font-variation-settings: 'dots' 0;
+}
+
+@theme {
+  --font-sans: 'IRANSansXV', Arial, Helvetica, sans-serif;
+
+  /* D'CODE brand palette */
+  --color-dcode-950: #05070c;
+  --color-dcode-900: #0c121e;
+  --color-dcode-850: #111827;
+  --color-dcode-800: #151b27;
+  --color-dcode-700: #1f2937;
+  --color-dcode-red-700: #c70f20;
+  --color-dcode-red-600: #e01729;
+  --color-dcode-red-500: #ff2b3d;
+  --color-dcode-red-100: #fff1f3;
+  --color-dcode-gold-600: #d6a100;
+  --color-dcode-gold-700: #a87900;
+
+  /* App neutrals */
+  --color-app-bg: #f5f7fa;
+  --color-app-surface: #ffffff;
+  --color-app-surface-soft: #f8fafc;
+  --color-app-muted: #5f6673;
+  --color-app-ink: #111111;
+  --color-app-line: #e5e7eb;
+
+  /* Compatibility aliases used by current Tailwind class strings */
+  --color-dcode-bg: var(--color-dcode-900);
+  --color-dcode-red: var(--color-dcode-red-500);
+  --color-dcode-ink: var(--color-app-ink);
+  --color-dcode-light: var(--color-app-bg);
+  --color-dcode-line: var(--color-app-line);
+
+  --shadow-dcode-soft: 0 10px 26px rgb(12 18 30 / 7%);
+  --shadow-dcode-panel: 0 18px 42px rgb(12 18 30 / 10%);
+  --shadow-dcode-modal: 0 34px 90px rgb(9 23 33 / 34%);
+
+  /* breakpoints */
+  --breakpoint-xs: 30rem; /* 480 px */
+  --breakpoint-2xs: 20rem; /* 320 px */
+  --breakpoint-smd: 42.5rem; /* 680 px */
+  --breakpoint-3xl: 90.0625rem; /* 1440 px */
+  --breakpoint-4xl: 108rem; /* 1728 px */
+  --breakpoint-5xl: 120rem; /* 1920 px */
+}
+
+@layer base {
+  *,
+  ::before,
+  ::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    min-height: 100%;
+    background: var(--color-app-bg);
+    overflow-x: hidden;
+  }
+
+  body {
+    min-height: 100vh;
+    margin: 0;
+    background: var(--color-app-bg);
+    color: var(--color-app-ink);
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  button:disabled {
+    cursor: not-allowed;
+  }
+
+  svg {
+    width: 1.15em;
+    height: 1.15em;
+    flex: 0 0 auto;
+  }
+}
