@@ -135,6 +135,8 @@ export default function Home() {
   const [modelSearch, setModelSearch] = useState('');
   const [serialSearch, setSerialSearch] = useState('');
   const [serialQuery, setSerialQuery] = useState('');
+  const [serialModelSearch, setSerialModelSearch] = useState('');
+  const [serialModelQuery, setSerialModelQuery] = useState('');
   const [serialDateFrom, setSerialDateFrom] = useState('');
   const [serialDateTo, setSerialDateTo] = useState('');
   const [modelPage, setModelPage] = useState(1);
@@ -151,6 +153,8 @@ export default function Home() {
   const [isScanBusy, setIsScanBusy] = useState(false);
   const scanInputRef = useRef<HTMLInputElement>(null);
   const modalSerialInputRef = useRef<HTMLInputElement>(null);
+  const serialTableRef = useRef<HTMLDivElement>(null);
+  const serialCardListRef = useRef<HTMLDivElement>(null);
 
   const [loginForm, setLoginForm] = useState({ username: 'admin', password: '' });
   const [productDialog, setProductDialog] = useState<{
@@ -335,6 +339,20 @@ export default function Home() {
   }, [serialSearch]);
 
   useEffect(() => {
+    const timeout = window.setTimeout(() => setSerialModelQuery(serialModelSearch.trim()), 300);
+
+    return () => window.clearTimeout(timeout);
+  }, [serialModelSearch]);
+
+  const serialModelOptions = useMemo(
+    () =>
+      Array.from(new Set(models.map((item) => item.model.trim()).filter(Boolean))).sort((a, b) =>
+        a.localeCompare(b),
+      ),
+    [models],
+  );
+
+  useEffect(() => {
     if (!hasHydrated || !isLoggedIn) {
       return;
     }
@@ -349,6 +367,10 @@ export default function Home() {
 
       if (serialQuery) {
         params.set('search', serialQuery);
+      }
+
+      if (serialModelQuery) {
+        params.set('model', serialModelQuery);
       }
 
       if (serialDateFrom) {
@@ -396,6 +418,7 @@ export default function Home() {
     isLoggedIn,
     serialDateFrom,
     serialDateTo,
+    serialModelQuery,
     serialPage,
     serialPageSize,
     serialQuery,
@@ -404,8 +427,21 @@ export default function Home() {
 
   const refreshSerials = () => setSerialRefresh((current) => current + 1);
 
+  // The pager sits under the table, so without this a new page opens scrolled to its last rows.
+  const changeSerialPage = (page: number) => {
+    setSerialPage(page);
+    serialTableRef.current?.scrollTo({ top: 0 });
+
+    // Only one of the two layouts is displayed at a time (table on desktop, cards on mobile).
+    const visibleList = [serialTableRef.current, serialCardListRef.current].find(
+      (element) => element && element.getClientRects().length > 0,
+    );
+    visibleList?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   const fallbackFilteredSerials = useMemo(() => {
     const query = serialSearch.trim().toLowerCase();
+    const modelQuery = serialModelSearch.trim().toLowerCase();
     const fromKey = persianDateKey(serialDateFrom);
     const toKey = persianDateKey(serialDateTo);
 
@@ -413,13 +449,14 @@ export default function Home() {
       const matchesQuery =
         !query ||
         [item.documentNo, item.customerName].some((value) => value.toLowerCase().includes(query));
+      const matchesModel = !modelQuery || item.model.toLowerCase().includes(modelQuery);
       const itemDateKey = persianDateKey(item.date);
       const matchesDateFrom = !fromKey || (itemDateKey !== null && itemDateKey >= fromKey);
       const matchesDateTo = !toKey || (itemDateKey !== null && itemDateKey <= toKey);
 
-      return matchesQuery && matchesDateFrom && matchesDateTo;
+      return matchesQuery && matchesModel && matchesDateFrom && matchesDateTo;
     });
-  }, [serialDateFrom, serialDateTo, serialSearch]);
+  }, [serialDateFrom, serialDateTo, serialModelSearch, serialSearch]);
 
   const serialFilteredTotal = serialPageData?.filteredTotal ?? fallbackFilteredSerials.length;
   const serialTotal = serialPageData?.total ?? seedSerials.length;
@@ -816,6 +853,10 @@ export default function Home() {
 
       if (serialQuery) {
         params.set('search', serialQuery);
+      }
+
+      if (serialModelQuery) {
+        params.set('model', serialModelQuery);
       }
 
       if (serialDateFrom) {
@@ -1300,16 +1341,36 @@ export default function Home() {
             />
             <div
               className={
-                'my-4 mb-5 grid w-full items-end gap-x-4 gap-y-6 rounded-2xl border border-app-line/80 bg-linear-to-b from-app-surface to-app-surface-soft px-4 py-3.5 shadow-dcode-soft md:grid-cols-[0.8fr_1.7fr_1.7fr_1.2fr]'
+                'my-4 mb-5 grid w-full items-end gap-x-4 gap-y-6 rounded-2xl border border-app-line/80 bg-linear-to-b from-app-surface to-app-surface-soft px-4 py-3.5 shadow-dcode-soft md:grid-cols-2 xl:grid-cols-[0.7fr_1.5fr_1.5fr_1.5fr_1.1fr]'
               }
             >
               <span
                 className={
-                  'col-start-1 ml-3 self-center whitespace-nowrap text-base font-black text-dcode-900 before:ml-2 before:inline-block before:size-2 before:rounded-full before:bg-dcode-red-500 before:ring-4 before:ring-dcode-red-500/10'
+                  'col-start-1 ml-3 self-center whitespace-nowrap text-base font-black text-dcode-900 before:ml-2 before:inline-block before:size-2 before:rounded-full before:bg-dcode-red-500 before:ring-4 before:ring-dcode-red-500/10 md:col-span-2 xl:col-span-1'
                 }
               >
-                بازه تاریخ
+                فیلترها
               </span>
+              <label className={'grid gap-2 text-sm font-bold text-app-muted md:max-w-80'}>
+                <span>مدل کالا</span>
+                <input
+                  className={
+                    'h-11 w-full rounded-lg border border-app-line bg-app-surface-soft px-3 font-extrabold text-app-ink outline-none placeholder:font-bold placeholder:text-app-muted focus:border-dcode-red-500 focus:ring-4 ring-dcode-red-500/10'
+                  }
+                  list="serial-model-options"
+                  onChange={(event) => {
+                    setSerialModelSearch(event.target.value);
+                    setSerialPage(1);
+                  }}
+                  placeholder="همه مدل‌ها"
+                  value={serialModelSearch}
+                />
+                <datalist id="serial-model-options">
+                  {serialModelOptions.map((model) => (
+                    <option key={model} value={model} />
+                  ))}
+                </datalist>
+              </label>
               <PersianDateField
                 label="از"
                 onChange={(value) => {
@@ -1335,13 +1396,14 @@ export default function Home() {
                   'min-h-11 whitespace-nowrap rounded-lg px-3.5 shadow-none md:max-w-80',
                 )}
                 onClick={() => {
+                  setSerialModelSearch('');
                   setSerialDateFrom('');
                   setSerialDateTo('');
                   setSerialPage(1);
                 }}
                 type="button"
               >
-                پاکسازی تاریخ
+                پاکسازی فیلترها
               </button>
             </div>
             <div className={'mb-3.5 -mt-1 flex justify-start max-smd:justify-end'}>
@@ -1355,13 +1417,14 @@ export default function Home() {
             </div>
             <div
               className={
-                'max-h-[min(62vh,680px)] overflow-auto rounded-xl border border-app-line bg-app-surface shadow-[inset_0_1px_0_rgb(255_255_255/85%)] [scrollbar-gutter:stable_both-edges] max-smd:hidden'
+                'max-h-[min(62vh,680px)] scroll-mt-4 overflow-auto rounded-xl border border-app-line bg-app-surface shadow-[inset_0_1px_0_rgb(255_255_255/85%)] [scrollbar-gutter:stable_both-edges] max-smd:hidden'
               }
+              ref={serialTableRef}
             >
               <table
                 className={cx(
                   'w-full min-w-245 border-separate border-spacing-0 text-app-muted [&_td]:whitespace-nowrap [&_td]:border-b [&_td]:border-l [&_td]:border-app-line/60 [&_td]:px-3.5 [&_td]:py-3 [&_td]:text-right [&_th]:sticky [&_th]:top-0 [&_th]:z-1 [&_th]:whitespace-nowrap [&_th]:border-b [&_th]:border-l [&_th]:border-app-line/60 [&_th]:bg-app-line [&_th]:px-3.5 [&_th]:py-3 [&_th]:text-right [&_th]:text-sm [&_th]:font-black [&_th]:text-slate-700 [&_tbody_tr:nth-child(odd)]:bg-app-surface [&_tbody_tr:nth-child(even)]:bg-app-surface-soft [&_tbody_tr:hover]:bg-dcode-red-100',
-                  'min-w-430 [&_td:nth-child(8)]:min-w-62.5 [&_th:nth-child(8)]:min-w-62.5',
+                  'min-w-430[&_td:nth-child(8)]:min-w-62.5 [&_th:nth-child(8)]:min-w-62.5',
                 )}
               >
                 <thead>
@@ -1433,7 +1496,11 @@ export default function Home() {
                 </tbody>
               </table>
             </div>
-            <div className={'hidden gap-3 max-smd:grid'} aria-label="لیست سریال‌ها">
+            <div
+              className={'hidden scroll-mt-4 gap-3 max-smd:grid'}
+              aria-label="لیست سریال‌ها"
+              ref={serialCardListRef}
+            >
               {paginatedSerials.length > 0 ? (
                 paginatedSerials.map((item, index) => (
                   <article
@@ -1513,7 +1580,7 @@ export default function Home() {
             </div>
             <PaginationSummary
               filteredTotal={serialFilteredTotal}
-              onPageChange={setSerialPage}
+              onPageChange={changeSerialPage}
               page={safeSerialPage}
               pageSize={serialPageSize}
               total={serialTotal}

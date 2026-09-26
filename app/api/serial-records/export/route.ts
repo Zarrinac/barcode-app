@@ -15,7 +15,7 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const filters = readSerialRecordFilters(searchParams);
-  const where = buildSerialRecordWhere(filters);
+  const where = await buildSerialRecordWhere(filters);
 
   const records = await prisma.serialRecord.findMany({
     where,
