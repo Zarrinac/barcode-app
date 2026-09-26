@@ -37,7 +37,7 @@ export async function GET(request: Request) {
     maxPageSize,
     readPositiveInt(searchParams.get('pageSize'), defaultPageSize),
   );
-  const where = buildSerialRecordWhere(readSerialRecordFilters(searchParams));
+  const where = await buildSerialRecordWhere(readSerialRecordFilters(searchParams));
 
   const [serials, filteredTotal, total] = await Promise.all([
     prisma.serialRecord.findMany({

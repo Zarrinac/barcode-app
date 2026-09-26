@@ -1,0 +1,30 @@
+# Deploy procedure for the /ship skill. Source of truth: CLAUDE.md "Deployment" + DEPLOYMENT.md.
+# No secrets here — the server reads them from /opt/barcode-app/.env.
+branch_model: feature -> PR -> main # origin/dev is stale; PRs merge straight into main (merge commit)
+merge_style: merge
+
+target:
+  ssh_alias: barcode-app # reza@172.17.0.13, key in ~/.ssh/config
+  path: /opt/barcode-app
+  service: barcode-app.service # systemd, NOT pm2
+  public_url: http://bcrs.dcode.co.ir # HTTP only; https refuses connections
+
+env_prefix: export PATH="$HOME/.nvm/versions/node/v24.15.0/bin:$PATH" # npm is under nvm; non-interactive ssh lacks it
+
+steps:
+  - snapshot: git rev-parse HEAD # rollback revision
+  - pull: git pull origin main
+  - install: npm ci
+  - generate: npx prisma generate
+  # Only when `git diff --name-only <snapshot>..HEAD -- prisma/` is non-empty.
+  # NEVER `npm run db:deploy`: it runs the auth seed, which resets every production password.
+  - schema_if_changed: npx prisma db push
+  - build: npm run deploy:check # readiness check + next build (no separate npm run build needed)
+  - restart: sudo systemctl restart barcode-app
+
+health_checks:
+  - systemctl is-active barcode-app
+  - curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1:3000/scanner # expect 200
+  - curl -s -o /dev/null -w '%{http_code}' http://127.0.0.1/scanner # through nginx, expect 200
+
+rollback: git checkout <snapshot> && npm ci && npx prisma generate && npm run deploy:check && sudo systemctl restart barcode-app

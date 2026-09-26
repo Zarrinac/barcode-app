@@ -58,6 +58,10 @@ That is what lets the second warehouse record the real exit to the customer late
 
 Names are matched on `warehouseNameKey()`, which drops whitespace and punctuation rather than normalizing it, because that one warehouse reached the database under four spellings (`انبار زرین شورآباد`, `انبارزرین شورآباد`, `انبار زرین شور آباد`, `انبار زرین - شورآباد`). Only whole keys are compared, never substrings, so a customer sharing a word with a warehouse (`شرکت صنایع زرین نمای کاسپین.قزوین`) is unaffected — check any new name against the real customer list before adding it.
 
+## Serial list filters
+
+`GET /api/serial-records` and `/export` share one filter builder, [lib/serial-records-query.ts](lib/serial-records-query.ts) (`search`, `model`, `dateFrom`, `dateTo`, ANDed), so the Excel export always matches what the dashboard shows. `model` matches the **displayed** name — the row's `modelName` or any `productCode` whose `product_models` name matches, because the list re-resolves names by product code ([lib/model-name.ts](lib/model-name.ts)). A value that is exactly a known model name is matched exactly (`HID-24S` must not pull in `HID-24S2`); anything else is a partial match.
+
 ## Offline Excel recovery
 
 When a device loses connection the operator can only save a local Excel backup, so those serials never reach the DB. [lib/xlsx-read.ts](lib/xlsx-read.ts) is a dependency-free `.xlsx` reader (Node `zlib` only — **do not add a spreadsheet library**) and [lib/serial-import.ts](lib/serial-import.ts) is the ingest core, deliberately Excel-agnostic so a future device outbox can post the same shape. `POST /api/serial-records/import` is multipart and defaults to `dryRun=true`; the dashboard always previews before committing. Imported rows get `RecordSource.EXCEL_IMPORT`.
