@@ -54,6 +54,10 @@ The legacy `INBOUND` rows that predated that fix were left alone until **2026-08
 
 That is what lets the second warehouse record the real exit to the customer later — before this, the transfer row made the serial look already used and the scan was rejected with «شماره سریال قبلا ثبت شده است.».
 
+### Duplicate scans are currently ALLOWED (since 2026-10-21)
+
+At the user's request every duplicate check on the scan path is **switched off, not deleted**: `allowDuplicateScans = true` in [lib/serial-duplicates.ts](lib/serial-duplicates.ts) makes `POST`/`PATCH` skip the lookup and `/duplicates` return empty arrays; the same-named constant in [components/scanner/scanner-page.tsx](components/scanner/scanner-page.tsx) and `ALLOW_DUPLICATE_SCANS` in the native `MainActivity.java` disable the in-document checks (native APK 0.1.4+; older APKs still reject a repeat _within one document_ but no longer against the DB). The **Excel import still dedupes**, so re-importing one backup file cannot double-insert. To restore the scoped rules below, flip all three back to `false` and rebuild the APK.
+
 `npm run db:warehouses:internal` registers the warehouses and previews the rows it would reclassify; add `-- --commit` to apply. It is **re-runnable** — that is how you add a warehouse: append it to the list in [scripts/mark-internal-warehouses.ts](scripts/mark-internal-warehouses.ts) and run it again. It converted 3095 pre-existing `انبار زرین شورآباد` rows to transfers.
 
 Names are matched on `warehouseNameKey()`, which drops whitespace and punctuation rather than normalizing it, because that one warehouse reached the database under four spellings (`انبار زرین شورآباد`, `انبارزرین شورآباد`, `انبار زرین شور آباد`, `انبار زرین - شورآباد`). Only whole keys are compared, never substrings, so a customer sharing a word with a warehouse (`شرکت صنایع زرین نمای کاسپین.قزوین`) is unaffected — check any new name against the real customer list before adding it.

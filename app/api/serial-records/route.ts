@@ -4,7 +4,12 @@ import { mapSerialRecord } from '@/lib/api-mappers';
 import { jsonError, readJsonBody, readString } from '@/lib/api-utils';
 import { findModelNamesByProductCode, resolveModelName } from '@/lib/model-name';
 import { prisma } from '@/lib/prisma';
-import { classifyDestination, isBlockedBy, scopeOfRecord } from '@/lib/serial-duplicates';
+import {
+  allowDuplicateScans,
+  classifyDestination,
+  isBlockedBy,
+  scopeOfRecord,
+} from '@/lib/serial-duplicates';
 import { buildSerialRecordWhere, readSerialRecordFilters } from '@/lib/serial-records-query';
 import { getCurrentUser, requireUser } from '@/lib/session';
 import { findInternalWarehouse, getDefaultWarehouseLocationId } from '@/lib/warehouse-location';
@@ -100,17 +105,19 @@ export async function POST(request: Request) {
   ];
   // A serial has at most a handful of rows, so the conflicting scopes are worked out in memory
   // with the same helpers the batch endpoints use rather than encoded into the query.
-  const existing = await prisma.serialRecord.findMany({
-    select: {
-      serialNo: true,
-      trackingCode: true,
-      movement: true,
-      customerName: true,
-    },
-    where: {
-      OR: duplicateConditions,
-    },
-  });
+  const existing = allowDuplicateScans
+    ? []
+    : await prisma.serialRecord.findMany({
+        select: {
+          serialNo: true,
+          trackingCode: true,
+          movement: true,
+          customerName: true,
+        },
+        where: {
+          OR: duplicateConditions,
+        },
+      });
   const blockingSerial = existing.filter((record) => record.serialNo === serialNo);
   const blockingTracking = existing.filter((record) => record.trackingCode === trackingCode);
 

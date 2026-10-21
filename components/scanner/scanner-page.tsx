@@ -43,7 +43,15 @@ function isRealTrackingCode(value: string) {
   return value.trim().toLowerCase() !== 'panel';
 }
 
+// Scanning the same serial or tracking code twice in one document is allowed for now
+// (2026-10-21); set this to false to restore the in-document checks.
+const allowDuplicateScans = true;
+
 function getDuplicateRowsMessage(rows: ScanRow[]) {
+  if (allowDuplicateScans) {
+    return null;
+  }
+
   const serialNos = new Set<string>();
   const trackingCodes = new Set<string>();
 
@@ -277,7 +285,7 @@ export default function ScannerPage() {
         return;
       }
 
-      if (rows.some((row) => row.serialNo === cleanSerialNo)) {
+      if (!allowDuplicateScans && rows.some((row) => row.serialNo === cleanSerialNo)) {
         showToast(`شماره سریال ${cleanSerialNo} در همین سند تکراری است.`, 'error');
         setSerialNo('');
         window.requestAnimationFrame(() => serialInputRef.current?.focus());
@@ -285,6 +293,7 @@ export default function ScannerPage() {
       }
 
       if (
+        !allowDuplicateScans &&
         isRealTrackingCode(cleanTrackingCode) &&
         rows.some((row) => row.trackingCode === cleanTrackingCode)
       ) {

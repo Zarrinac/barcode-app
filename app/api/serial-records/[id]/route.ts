@@ -9,7 +9,7 @@ import {
   readString,
 } from '@/lib/api-utils';
 import { prisma } from '@/lib/prisma';
-import { isBlockedBy, scopeOfRecord } from '@/lib/serial-duplicates';
+import { allowDuplicateScans, isBlockedBy, scopeOfRecord } from '@/lib/serial-duplicates';
 import { getCurrentUser, requireManager } from '@/lib/session';
 import { findInternalWarehouse } from '@/lib/warehouse-location';
 
@@ -59,21 +59,23 @@ export async function PATCH(request: Request, ctx: RouteContext<'/api/serial-rec
     : requestedMovement === MovementType.TRANSFER
       ? MovementType.OUTBOUND
       : requestedMovement;
-  const existing = await prisma.serialRecord.findMany({
-    select: {
-      serialNo: true,
-      trackingCode: true,
-      movement: true,
-      customerName: true,
-    },
-    where: {
-      id: { not: id },
-      OR: [
-        { serialNo },
-        ...(trackingCode && isRealTrackingCode(trackingCode) ? [{ trackingCode }] : []),
-      ],
-    },
-  });
+  const existing = allowDuplicateScans
+    ? []
+    : await prisma.serialRecord.findMany({
+        select: {
+          serialNo: true,
+          trackingCode: true,
+          movement: true,
+          customerName: true,
+        },
+        where: {
+          id: { not: id },
+          OR: [
+            { serialNo },
+            ...(trackingCode && isRealTrackingCode(trackingCode) ? [{ trackingCode }] : []),
+          ],
+        },
+      });
 
   if (
     isBlockedBy(
