@@ -1,6 +1,6 @@
 import { jsonError, readJsonBody, readString } from '@/lib/api-utils';
 import { prisma } from '@/lib/prisma';
-import { groupScopesByKey, isBlockedBy } from '@/lib/serial-duplicates';
+import { allowDuplicateScans, groupScopesByKey, isBlockedBy } from '@/lib/serial-duplicates';
 import { getCurrentUser } from '@/lib/session';
 import { findInternalWarehouse } from '@/lib/warehouse-location';
 
@@ -36,6 +36,10 @@ export async function POST(request: Request) {
   const trackingCodes = readStringList(body, 'trackingCodes').filter(isRealTrackingCode);
 
   if (serialNos.length === 0 && trackingCodes.length === 0) {
+    return Response.json({ serialNos: [], trackingCodes: [] });
+  }
+
+  if (allowDuplicateScans) {
     return Response.json({ serialNos: [], trackingCodes: [] });
   }
 

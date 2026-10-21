@@ -45,6 +45,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public final class MainActivity extends Activity {
+    // Scanning the same serial or tracking code twice is allowed for now (2026-10-21); set this to
+    // false to restore the in-document checks. The server-side check is switched off separately.
+    private static final boolean ALLOW_DUPLICATE_SCANS = true;
     private static final int DCODE_900 = Color.rgb(12, 18, 30);
     private static final int DCODE_800 = Color.rgb(21, 27, 39);
     private static final int DCODE_700 = Color.rgb(31, 41, 55);
@@ -786,22 +789,24 @@ public final class MainActivity extends Activity {
             return;
         }
 
-        for (ScanRow row : rows) {
-            if (row.serialNo.equals(cleanSerialNo)) {
-                showToast("شماره سریال " + cleanSerialNo + " در همین سند تکراری است.", true);
-                serialNo = "";
-                renderCollect();
-                focusAfterScannerCommit(serialInput);
-                return;
-            }
+        if (!ALLOW_DUPLICATE_SCANS) {
+            for (ScanRow row : rows) {
+                if (row.serialNo.equals(cleanSerialNo)) {
+                    showToast("شماره سریال " + cleanSerialNo + " در همین سند تکراری است.", true);
+                    serialNo = "";
+                    renderCollect();
+                    focusAfterScannerCommit(serialInput);
+                    return;
+                }
 
-            if (isRealTrackingCode(cleanTrackingCode) && row.trackingCode.equals(cleanTrackingCode)) {
-                showToast("کد رهگیری " + cleanTrackingCode + " در همین سند تکراری است.", true);
-                trackingCode = "";
-                serialNo = "";
-                renderCollect();
-                focusAfterScannerCommit(trackingInput);
-                return;
+                if (isRealTrackingCode(cleanTrackingCode) && row.trackingCode.equals(cleanTrackingCode)) {
+                    showToast("کد رهگیری " + cleanTrackingCode + " در همین سند تکراری است.", true);
+                    trackingCode = "";
+                    serialNo = "";
+                    renderCollect();
+                    focusAfterScannerCommit(trackingInput);
+                    return;
+                }
             }
         }
 
@@ -989,6 +994,10 @@ public final class MainActivity extends Activity {
     }
 
     private String getDuplicateRowsMessage() {
+        if (ALLOW_DUPLICATE_SCANS) {
+            return null;
+        }
+
         Set<String> serialNos = new HashSet<>();
         Set<String> trackingCodes = new HashSet<>();
 

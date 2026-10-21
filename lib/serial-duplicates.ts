@@ -19,6 +19,14 @@ import type { InternalWarehouse } from '@/lib/warehouse-location';
  */
 export type ExitScope = string;
 
+/**
+ * Duplicate scans are allowed for now (2026-10-21, by request): operators may record the same
+ * serial or tracking code more than once. POST, PATCH and /duplicates skip their checks while this
+ * is true; the Excel import still dedupes so re-importing one backup file cannot double-insert.
+ * Flip it back to false to restore the scoped checks below unchanged.
+ */
+export const allowDuplicateScans = true;
+
 const realExitScope: ExitScope = 'exit';
 
 function transferScope(warehouseName: string): ExitScope {
