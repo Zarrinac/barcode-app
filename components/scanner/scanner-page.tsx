@@ -2,7 +2,7 @@
 
 import { Close, Delete, Home, Key, Person, QrCodeScanner, Save, Send } from '@mui/icons-material';
 import Image from 'next/image';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import type {
   AcPart,
@@ -76,6 +76,71 @@ function getDuplicateRowsMessage(rows: ScanRow[]) {
   return null;
 }
 
+// Focus is moved synchronously, inside the key event that committed the scan. Deferring it with
+// setTimeout/requestAnimationFrame lets the browser deliver the NEXT scan's characters first
+// whenever the main thread is busy (a long list on a slow handheld), so they land in the wrong
+// field and the scan order breaks.
+function focusInput(input: HTMLInputElement | null | undefined) {
+  if (!input) {
+    return;
+  }
+
+  input.focus();
+  const end = input.value.length;
+
+  try {
+    input.setSelectionRange(end, end);
+  } catch {
+    // Some input types do not support selection ranges; the focus already moved.
+  }
+}
+
+// The list is memoised so typing into a scan field no longer re-renders every row — with 60+ rows
+// that per-keystroke cost is what made the scanner lag and fall out of order.
+const ScanRowList = memo(function ScanRowList({
+  onDelete,
+  rows,
+}: {
+  onDelete: (id: string) => void;
+  rows: ScanRow[];
+}) {
+  return (
+    <>
+      {rows.map((row, index) => (
+        <article
+          className={
+            'grid min-h-20 grid-cols-[2rem_1fr_3rem] items-center gap-2 rounded-xl bg-app-surface-soft px-2.5 py-2 text-lg text-dcode-red-500 [&+&]:mt-2.5'
+          }
+          key={row.id}
+        >
+          <span className={'font-extrabold text-dcode-900'}>{rows.length - index}</span>
+          <div className={'grid min-w-0 gap-0.5'}>
+            <strong className={'wrap-anywhere text-lg font-black leading-tight'}>
+              {row.productCode}
+            </strong>
+            <small className={'wrap-anywhere text-base font-semibold leading-tight'}>
+              {row.trackingCode}
+            </small>
+            <small className={'wrap-anywhere text-base font-semibold leading-tight'}>
+              {row.serialNo}
+            </small>
+          </div>
+          <button
+            className={
+              'grid min-h-11 w-full place-items-center rounded-xl border-0 bg-app-surface text-dcode-red-500'
+            }
+            aria-label="حذف"
+            onClick={() => onDelete(row.id)}
+            type="button"
+          >
+            <Delete className={'size-6!'} />
+          </button>
+        </article>
+      ))}
+    </>
+  );
+});
+
 export default function ScannerPage() {
   const [step, setStep] = useState<ScannerStep>('login');
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
@@ -108,6 +173,10 @@ export default function ScannerPage() {
     setStep(nextStep);
     setStatusMessage(getDefaultStatusMessage(nextStep));
     setStatusTone('default');
+  }, []);
+
+  const deleteRow = useCallback((id: string) => {
+    setRows((current) => current.filter((item) => item.id !== id));
   }, []);
 
   const modelByProductCode = useMemo(() => {
@@ -288,7 +357,7 @@ export default function ScannerPage() {
       if (!allowDuplicateScans && rows.some((row) => row.serialNo === cleanSerialNo)) {
         showToast(`شماره سریال ${cleanSerialNo} در همین سند تکراری است.`, 'error');
         setSerialNo('');
-        window.requestAnimationFrame(() => serialInputRef.current?.focus());
+        focusInput(serialInputRef.current);
         return;
       }
 
@@ -300,7 +369,7 @@ export default function ScannerPage() {
         showToast(`کد رهگیری ${cleanTrackingCode} در همین سند تکراری است.`, 'error');
         setTrackingCode('');
         setSerialNo('');
-        window.requestAnimationFrame(() => trackingInputRef.current?.focus());
+        focusInput(trackingInputRef.current);
         return;
       }
 
@@ -322,9 +391,7 @@ export default function ScannerPage() {
       ]);
       setTrackingCode(acPart === 'panel' ? 'panel' : '');
       setSerialNo('');
-      window.requestAnimationFrame(() =>
-        (acPart === 'panel' ? serialInputRef.current : trackingInputRef.current)?.focus(),
-      );
+      focusInput(acPart === 'panel' ? serialInputRef.current : trackingInputRef.current);
     },
     [
       acPart,
@@ -421,7 +488,7 @@ export default function ScannerPage() {
       setTrackingCode(normalizeNumberInput(event.currentTarget.value));
     }
 
-    window.setTimeout(() => next.current?.focus(), 0);
+    focusInput(next.current);
   };
 
   const clearProductForNewModel = () => {
@@ -432,7 +499,7 @@ export default function ScannerPage() {
     setProductCode('');
     setTrackingCode(acPart === 'panel' ? 'panel' : '');
     setSerialNo('');
-    window.requestAnimationFrame(() => productInputRef.current?.focus());
+    focusInput(productInputRef.current);
   };
 
   const selectAcPart = (part: Exclude<AcPart, null>) => {
@@ -442,14 +509,14 @@ export default function ScannerPage() {
 
     if (nextPart === 'panel') {
       setTrackingCode('panel');
-      window.requestAnimationFrame(() => serialInputRef.current?.focus());
+      focusInput(serialInputRef.current);
       return;
     }
 
     if (trackingCode === 'panel') {
       setTrackingCode('');
     }
-    window.requestAnimationFrame(() => trackingInputRef.current?.focus());
+    focusInput(trackingInputRef.current);
   };
 
   const finishSuccessfulBatch = (message: string) => {
@@ -563,9 +630,7 @@ export default function ScannerPage() {
     setSerialNo('');
     setStatusMessage('لیست پاک شد.');
     setStatusTone('default');
-    window.requestAnimationFrame(() =>
-      (acPart === 'panel' ? serialInputRef.current : trackingInputRef.current)?.focus(),
-    );
+    focusInput(acPart === 'panel' ? serialInputRef.current : trackingInputRef.current);
   };
 
   if (step === 'login') {
@@ -1056,37 +1121,7 @@ export default function ScannerPage() {
           'grid min-h-36 max-h-[calc(100dvh-438px)] content-start overflow-y-auto rounded-2xl bg-app-surface p-2 shadow-[inset_0_0_0_1px_rgb(21_49_66/10%)]'
         }
       >
-        {rows.map((row, index) => (
-          <article
-            className={
-              'grid min-h-20 grid-cols-[2rem_1fr_3rem] items-center gap-2 rounded-xl bg-app-surface-soft px-2.5 py-2 text-lg text-dcode-red-500 [&+&]:mt-2.5'
-            }
-            key={row.id}
-          >
-            <span className={'font-extrabold text-dcode-900'}>{rows.length - index}</span>
-            <div className={'grid min-w-0 gap-0.5'}>
-              <strong className={'wrap-anywhere text-lg font-black leading-tight'}>
-                {row.productCode}
-              </strong>
-              <small className={'wrap-anywhere text-base font-semibold leading-tight'}>
-                {row.trackingCode}
-              </small>
-              <small className={'wrap-anywhere text-base font-semibold leading-tight'}>
-                {row.serialNo}
-              </small>
-            </div>
-            <button
-              className={
-                'grid min-h-11 w-full place-items-center rounded-xl border-0 bg-app-surface text-dcode-red-500'
-              }
-              aria-label="حذف"
-              onClick={() => setRows((current) => current.filter((item) => item.id !== row.id))}
-              type="button"
-            >
-              <Delete className={'size-6!'} />
-            </button>
-          </article>
-        ))}
+        <ScanRowList onDelete={deleteRow} rows={rows} />
       </section>
     </main>
   );

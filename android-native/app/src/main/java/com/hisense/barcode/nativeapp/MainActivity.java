@@ -123,6 +123,8 @@ public final class MainActivity extends Activity {
     private TextView statusText;
     private TextView toastText;
     private TextView currentModelText;
+    private TextView rowCountText;
+    private LinearLayout rowsListContainer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -489,6 +491,7 @@ public final class MainActivity extends Activity {
         LinearLayout firstRow = horizontal();
         firstRow.setGravity(Gravity.CENTER_VERTICAL);
         TextView count = text("تعداد: " + persianNumberFormat.format(rows.size()), 16, DCODE_900, Typeface.BOLD);
+        rowCountText = count;
         firstRow.addView(count, linear(0, -1, 1));
 
         Button motor = partButton("موتور", "motor".equals(acPart));
@@ -508,6 +511,69 @@ public final class MainActivity extends Activity {
         return box;
     }
 
+    private LinearLayout buildRowItem(ScanRow row) {
+        LinearLayout item = horizontal();
+        item.setGravity(Gravity.CENTER_VERTICAL);
+        item.setPadding(dp(10), dp(8), dp(10), dp(8));
+        item.setBackground(rounded(APP_SURFACE_SOFT, 12));
+
+        // The number is renumbered by refreshRowNumbers(), so it is created empty here.
+        TextView number = text("", 17, DCODE_900, Typeface.BOLD);
+        number.setGravity(Gravity.CENTER);
+        item.addView(number, linear(dp(38), -1));
+
+        LinearLayout details = vertical(Gravity.START);
+        details.addView(text(row.productCode, 18, DCODE_RED_500, Typeface.BOLD), linear(-1, -2));
+        details.addView(text(row.trackingCode, 15, DCODE_RED_500, Typeface.NORMAL), linear(-1, -2));
+        details.addView(text(row.serialNo, 15, DCODE_RED_500, Typeface.NORMAL), linear(-1, -2));
+        item.addView(details, linear(0, -1, 1, dp(8), 0, dp(8), 0));
+
+        ImageButton delete = imageButton(R.drawable.ic_delete_24, DCODE_RED_500, APP_SURFACE);
+        delete.setOnClickListener(
+                view -> {
+                    rows.remove(row);
+                    renderCollect();
+                });
+        item.addView(delete, linear(dp(58), dp(48)));
+
+        return item;
+    }
+
+    // Newest row first: number 1 is the oldest, at the bottom of the list.
+    private void refreshRowNumbers() {
+        if (rowsListContainer == null) {
+            return;
+        }
+
+        int count = rowsListContainer.getChildCount();
+
+        for (int index = 0; index < count; index++) {
+            View item = rowsListContainer.getChildAt(index);
+            ((TextView) ((LinearLayout) item).getChildAt(0))
+                    .setText(String.valueOf(rows.size() - index));
+            ((LinearLayout.LayoutParams) item.getLayoutParams()).topMargin = index == 0 ? 0 : dp(8);
+        }
+
+        rowsListContainer.requestLayout();
+    }
+
+    // Adding a scanned row must not rebuild the screen: setContentView drops focus (Android then
+    // hands it to the first field, شناسه کالا) and inflating every row on each scan made the next
+    // barcode arrive before focus was restored once a document passed ~60 rows.
+    private void addRowViewInPlace(ScanRow row) {
+        if (rowsListContainer == null) {
+            renderCollect();
+            return;
+        }
+
+        rowsListContainer.addView(buildRowItem(row), 0, linear(-1, dp(86), 0, 0, 0, 0));
+        refreshRowNumbers();
+
+        if (rowCountText != null) {
+            rowCountText.setText("تعداد: " + persianNumberFormat.format(rows.size()));
+        }
+    }
+
     private ScrollView rowsList() {
         ScrollView scrollView = new ScrollView(this);
         scrollView.setFillViewport(false);
@@ -515,33 +581,10 @@ public final class MainActivity extends Activity {
         scrollView.setPadding(dp(8), dp(8), dp(8), dp(8));
 
         LinearLayout list = vertical(Gravity.NO_GRAVITY);
+        rowsListContainer = list;
 
         for (int index = 0; index < rows.size(); index++) {
-            ScanRow row = rows.get(index);
-            LinearLayout item = horizontal();
-            item.setGravity(Gravity.CENTER_VERTICAL);
-            item.setPadding(dp(10), dp(8), dp(10), dp(8));
-            item.setBackground(rounded(APP_SURFACE_SOFT, 12));
-
-            TextView number = text(String.valueOf(rows.size() - index), 17, DCODE_900, Typeface.BOLD);
-            number.setGravity(Gravity.CENTER);
-            item.addView(number, linear(dp(38), -1));
-
-            LinearLayout details = vertical(Gravity.START);
-            details.addView(text(row.productCode, 18, DCODE_RED_500, Typeface.BOLD), linear(-1, -2));
-            details.addView(text(row.trackingCode, 15, DCODE_RED_500, Typeface.NORMAL), linear(-1, -2));
-            details.addView(text(row.serialNo, 15, DCODE_RED_500, Typeface.NORMAL), linear(-1, -2));
-            item.addView(details, linear(0, -1, 1, dp(8), 0, dp(8), 0));
-
-            ImageButton delete = imageButton(R.drawable.ic_delete_24, DCODE_RED_500, APP_SURFACE);
-            delete.setOnClickListener(
-                    view -> {
-                        rows.remove(row);
-                        renderCollect();
-                    });
-            item.addView(delete, linear(dp(58), dp(48)));
-
-            list.addView(item, linear(-1, dp(86), 0, index == 0 ? 0 : dp(8), 0, 0));
+            list.addView(buildRowItem(rows.get(index)), linear(-1, dp(86), 0, index == 0 ? 0 : dp(8), 0, 0));
         }
 
         scrollView.addView(list, linear(-1, -2));
@@ -811,8 +854,7 @@ public final class MainActivity extends Activity {
         }
 
         ProductModel model = modelByProductCode.get(cleanProductCode);
-        rows.add(
-                0,
+        ScanRow newRow =
                 new ScanRow(
                         System.currentTimeMillis() + "-" + cleanSerialNo,
                         date,
@@ -822,12 +864,16 @@ public final class MainActivity extends Activity {
                         model == null ? "" : model.model,
                         acPart,
                         cleanTrackingCode,
-                        cleanSerialNo));
+                        cleanSerialNo);
+        rows.add(0, newRow);
 
         productCode = cleanProductCode;
         trackingCode = "panel".equals(acPart) ? "panel" : "";
         serialNo = "";
-        renderCollect();
+        productInput.setText(productCode);
+        trackingInput.setText(trackingCode);
+        serialInput.setText(serialNo);
+        addRowViewInPlace(newRow);
         EditText focusTarget = "panel".equals(acPart) ? serialInput : trackingInput;
         focusAfterScannerCommit(focusTarget);
     }

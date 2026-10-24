@@ -319,6 +319,14 @@ Check:
 
 ---
 
+### Scan lands in the wrong field on long documents
+
+Symptom: after scanning the product ID the next barcode appears in the serial (or product) field, usually once a document passes ~60 rows.
+
+Cause: focus was moved on a timer, so on a busy device the next scan arrived before the focus change. Fixed in 0.1.5 — the web scanner moves focus inside the key event, and the native app adds rows in place instead of rebuilding the screen. If it still happens, make sure the device runs v0.1.5 or later (the version shows on the document and scan screens).
+
+---
+
 ### Android APK connection problems
 
 Check:

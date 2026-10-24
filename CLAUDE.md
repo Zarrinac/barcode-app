@@ -70,6 +70,14 @@ Names are matched on `warehouseNameKey()`, which drops whitespace and punctuatio
 
 When a device loses connection the operator can only save a local Excel backup, so those serials never reach the DB. [lib/xlsx-read.ts](lib/xlsx-read.ts) is a dependency-free `.xlsx` reader (Node `zlib` only — **do not add a spreadsheet library**) and [lib/serial-import.ts](lib/serial-import.ts) is the ingest core, deliberately Excel-agnostic so a future device outbox can post the same shape. `POST /api/serial-records/import` is multipart and defaults to `dryRun=true`; the dashboard always previews before committing. Imported rows get `RecordSource.EXCEL_IMPORT`.
 
+## Scanner field order (focus must move synchronously)
+
+The operator scans three barcodes per row into three inputs — `شناسه کالا` → `کد رهگیری` → `شماره سریال` — and the hardware scanner types into whichever field has focus, so **focus has to be on the next field before the next barcode arrives**. Past ~60 rows in one document the order used to break (e.g. after the product ID the next scan landed in the serial field, or in the product field again).
+
+- **Web** ([components/scanner/scanner-page.tsx](components/scanner/scanner-page.tsx)): focus moves through `focusInput()` **inside the Enter/Tab key event**. Do not go back to `setTimeout`/`requestAnimationFrame` — on a busy main thread the browser delivers the next scan's characters first. The row list is the memoised `ScanRowList`, so a keystroke no longer re-renders every row.
+- **Native** (`MainActivity.java`): adding a row is an **in-place update** (`addRowViewInPlace()` + `refreshRowNumbers()`), not `renderCollect()`. `setContentView` drops focus and Android hands it to the first field, and re-inflating every row per scan is what made it slow. `renderCollect()` is still used for delete, part switch and screen changes. The delayed `focusAfterScannerCommit` and its debounce/cooldown are deliberate (the scanner's trailing key) — don't remove them without a device to test on.
+- Verified 2026-10-24 (web, 80–120 rows, scanner emulated from the page incl. a blocked main thread): all rows in order. The native change was built (v0.1.5) but **not exercised on a device** — if operators still see a wrong-field jump on the M3, that is the first place to look.
+
 ## Two Android apps (different package IDs, installable side by side)
 
 - **Capacitor wrapper** — appId `com.hisense.barcode`, name "D'CODE". Loads the deployed `/scanner` page. Config in [capacitor.config.ts](capacitor.config.ts), server URL from `CAPACITOR_SERVER_URL`.
@@ -89,6 +97,8 @@ cd android-native
 ```
 
 Then copy `android-native/app/build/outputs/apk/debug/app-debug.apk` to `public/downloads/barcode-native.apk`.
+
+If Gradle fails at configuration with `Could not read workspace metadata from …/.gradle/caches/8.14.3/transforms/<hash>/metadata.bin`, that cache is corrupt (an interrupted build). It is regenerable: `gradlew --stop`, delete `~/.gradle/caches/8.14.3/transforms` **entirely** (removing only the broken entries leaves dangling references), and rebuild with `--offline`.
 
 ## Common commands
 
